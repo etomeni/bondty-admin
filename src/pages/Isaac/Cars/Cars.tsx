@@ -3,7 +3,6 @@ import { useState, useEffect } from "react"
 import { ChevronLeft, X, ImageIcon, ChevronDown, MapPin } from "lucide-react"
 import Security from "./security"
 import apiClient from "../utils/apiClient"
-// @ts-ignore
 import LocationSelectionModal from "../locationselection"
 import "./scrollbar-hide.css"
 import { useNavigate } from "react-router-dom"

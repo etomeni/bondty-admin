@@ -1,15 +1,41 @@
+"use client"
+
+import type React from "react"
 import { useState, useEffect } from "react"
 import Modal from "react-modal"
 import { Search, Check, MapPin, X } from "lucide-react"
 
 const API_KEY = "AIzaSyCKGOncl1C9CKmSzx9ExmibDumfVSJWl6s"
 
-const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [locations, setLocations] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [autocompleteService, setAutocompleteService] = useState(null)
-  const [selectedLocationId, setSelectedLocationId] = useState(null)
+interface Location {
+  place_id: string
+  description: string
+  structured_formatting: {
+    main_text: string
+    secondary_text: string
+  }
+}
+
+interface AddressInfo {
+  city: string
+  state: string
+  country: string
+  latitude: string
+  longitude: string
+}
+
+interface LocationSelectionModalProps {
+  isVisible: boolean
+  onClose: () => void
+  onSelectLocation: (location: AddressInfo) => void
+}
+
+const LocationSelectionModal: React.FC<LocationSelectionModalProps> = ({ isVisible, onClose, onSelectLocation }) => {
+  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [locations, setLocations] = useState<Location[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
+  const [autocompleteService, setAutocompleteService] = useState<google.maps.places.AutocompleteService | null>(null)
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null)
 
   useEffect(() => {
     const loadGoogleMapsScript = () => {
@@ -40,23 +66,29 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
       setLoading(true)
 
       try {
-        const request = {
+        const request: google.maps.places.AutocompletionRequest = {
           input: searchQuery,
           types: ["geocode"],
         }
 
-        autocompleteService.getPlacePredictions(request, (predictions, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-            const formattedLocations = predictions.map((prediction) => ({
-              place_id: prediction.place_id,
-              description: prediction.description,
-              structured_formatting: prediction.structured_formatting,
-            }))
-            setLocations(formattedLocations)
-          } else {
-            console.error("Error fetching location predictions:", status)
-          }
-        })
+        autocompleteService.getPlacePredictions(
+          request,
+          (
+            predictions: google.maps.places.AutocompletePrediction[] | null,
+            status: google.maps.places.PlacesServiceStatus,
+          ) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+              const formattedLocations: Location[] = predictions.map((prediction) => ({
+                place_id: prediction.place_id,
+                description: prediction.description,
+                structured_formatting: prediction.structured_formatting,
+              }))
+              setLocations(formattedLocations)
+            } else {
+              console.error("Error fetching location predictions:", status)
+            }
+          },
+        )
       } catch (error) {
         console.error("Error fetching locations:", error)
       } finally {
@@ -68,8 +100,8 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
     return () => clearTimeout(timeoutId)
   }, [searchQuery, autocompleteService])
 
-  const extractAddressComponents = (addressComponents) => {
-    const componentMap = {}
+  const extractAddressComponents = (addressComponents: google.maps.GeocoderAddressComponent[]): AddressInfo => {
+    const componentMap: { [key: string]: string } = {}
     addressComponents.forEach((component) => {
       const type = component.types[0]
       componentMap[type] = component.long_name
@@ -90,12 +122,12 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
     }
   }
 
-  const handleLocationSelect = async (location) => {
+  const handleLocationSelect = async (location: Location) => {
     try {
       const geocoder = new window.google.maps.Geocoder()
-      const placeDetails = await new Promise((resolve, reject) => {
+      const placeDetails = await new Promise<google.maps.GeocoderResult>((resolve, reject) => {
         geocoder.geocode({ placeId: location.place_id }, (results, status) => {
-          if (status === window.google.maps.GeocoderStatus.OK && results && results[0]) {
+          if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
             resolve(results[0])
           } else {
             reject(new Error("Failed to retrieve location details."))
@@ -104,7 +136,7 @@ const LocationSelectionModal = ({ isVisible, onClose, onSelectLocation }) => {
       })
 
       const { geometry, address_components } = placeDetails
-      const { location: coords } = geometry
+      const coords = geometry.location
 
       // Extract address components
       const addressInfo = extractAddressComponents(address_components)

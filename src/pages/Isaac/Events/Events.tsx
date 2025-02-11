@@ -1,8 +1,7 @@
 import { useState, useEffect, type FormEvent } from "react"
 import { Trash2, X, MapPin, Upload } from "lucide-react"
 import TicketsModal from "./TicketsModal"
-// @ts-ignore
-import LocationSelectionModal from "./LocationSelectionModal"
+import LocationSelectionEvent from "./LocationSelectionModal"
 import apiClient from "../utils/apiClient"
 import LoadingModal from "../LoadingModal"
 
@@ -422,7 +421,7 @@ export default function Events() {
       )}
 
       {/* Location Selection Modal */}
-      <LocationSelectionModal
+      <LocationSelectionEvent
         isVisible={showLocationModal}
         onClose={() => setShowLocationModal(false)}
         onSelectLocation={handleLocationSelect}

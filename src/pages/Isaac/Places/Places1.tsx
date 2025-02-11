@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react"
 import { Trash2, X, Upload, Star, Plus, MapPin } from "lucide-react"
-// @ts-ignore
-import LocationSelectionModal from "../LocationSelection"
+import LocationSelectionModal from "../locationselection"
 
 interface Place {
   id: number
