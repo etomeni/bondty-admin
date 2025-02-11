@@ -20,4 +20,4 @@ RUN npm run build --force
 EXPOSE 5173
 
 # Start the application
-CMD ["npm", "run", "dev", "--", "--host", "--allowed-hosts=admin.bondyt.com"]
+CMD ["npm", "run", "dev", "--host", "0.0.0.0"]
