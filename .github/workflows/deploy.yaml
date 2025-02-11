@@ -1,0 +1,35 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, prod]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3    
+
+      - name: Build docker image
+        run: docker build -t bondyt-admin-dashboard .
+        
+
+      - name: Delete old container
+        run: docker rm -f bondyt-admin-dashboard || true
+
+        
+      - name: Run docker container
+        run: docker run -d -p 5173:5173 --name bondyt-admin-dashboard bondyt-admin-dashboard
+
+        
+      - name: Clean up space
+        run: docker system prune -a -f
