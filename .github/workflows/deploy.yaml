@@ -28,7 +28,7 @@ jobs:
 
         
       - name: Run docker container
-        run: docker run -d -p 3005:80 --name bondyt-admin-dashboard bondyt-admin-dashboard
+        run: docker run -d -p 3005:3005 --name bondyt-admin-dashboard bondyt-admin-dashboard
 
         
       - name: Clean up space

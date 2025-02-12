@@ -1,29 +1,33 @@
-# Step 1: Use a node base image to install dependencies and build the app
+# Build stage
 FROM node:lts-alpine AS build
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if you have one) to the container
-COPY package.json package-lock.json* ./
+# Copy package files first for caching
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application files
+# Copy application code
 COPY . .
 
-# Build the Vite app for production
+# Build the application
 RUN npm run build
 
-# Step 2: Serve the app using a web server (e.g., nginx or serve)
-FROM nginx:alpine
+# Use a lightweight production image
+FROM node:lts-alpine AS production
 
-# Copy the build output from the previous stage to the nginx container
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Expose the default port for nginx
-EXPOSE 80
+# Install serve globally
+RUN npm install -g serve
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Copy built application from builder
+COPY --from=build /app/dist /app
+
+# Expose the application port
+EXPOSE 3005
+
+# Serve the built application
+CMD ["serve", "-s", "/app", "-l", "3005"]
