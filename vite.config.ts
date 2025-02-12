@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react'
 import path from "path";
 import tailwindcss from "tailwindcss";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
 
@@ -16,5 +15,8 @@ export default defineConfig({
     postcss: {
       plugins: [tailwindcss()],
     },
-    },
+  },
+  server: {
+    allowedHosts: ['admin.bondyt.com'], // Add this line to allow the host
+  },
 })
