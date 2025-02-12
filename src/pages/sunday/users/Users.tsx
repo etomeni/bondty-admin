@@ -265,7 +265,10 @@ const UsersPage = () => {
                                                 
                                                 <TableCell>
                                                     {
-                                                        userData.tier != "free" ? 
+                                                        userData.tier == "daily" || 
+                                                        userData.tier == "weekly" || 
+                                                        userData.tier == "monthly" || 
+                                                        userData.tier == "yearly" ?
                                                             <Typography component="div"
                                                                 sx={{
                                                                     fontWeight: "700",

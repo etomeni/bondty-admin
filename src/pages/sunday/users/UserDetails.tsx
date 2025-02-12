@@ -154,7 +154,10 @@ const UserDetailsPage = () => {
 
                                     <Box>
                                         {
-                                            selectedUserDetails.tier != "free" ? 
+                                            selectedUserDetails.tier == "daily" || 
+                                            selectedUserDetails.tier == "weekly" || 
+                                            selectedUserDetails.tier == "monthly" || 
+                                            selectedUserDetails.tier == "yearly" ?
                                                 <Typography 
                                                     sx={{
                                                         fontWeight: "600",
