@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -7,17 +7,40 @@ import Button from '@mui/material/Button';
 import kolors from '@/constants/kolors';
 import NotificationComponent from '@/components/sunday/NotificationComponent';
 import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
-import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg"
+// import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg"
 import ModalWrapper from '@/components/ModalWrapper';
 import { themeBtnStyle } from '@/util/mui';
 import { getQueryParams } from '@/util/resources';
+import { useMerchantHook } from '@/hooks/merchants/useMerchantHook';
+import LoadingDataComponent from '@/components/LoadingData';
+import Alert from '@mui/material/Alert';
 
 
 const PendingMerchantDeatilsPage = () => {
     const navigate = useNavigate();
     const [imagePreviewModal, setImagePreviewModal] = useState(false);
     const viewType = getQueryParams("viewType");
+    const merchant_id = getQueryParams("id");
 
+
+    const {
+        // limitNo, setLimitNo,
+        // currentPageNo, totalRecords,
+        apiResponse,
+
+        selectedMerchant,
+        getMerchantById,
+        reviewPendingMerchant,
+    } = useMerchantHook();
+
+    useEffect(() => {
+        if (merchant_id) {
+            getMerchantById(merchant_id);
+        } else {
+            navigate(-1);
+        }
+    }, [merchant_id]);
+    
 
     return (
         <Box mb={5}
@@ -26,7 +49,8 @@ const PendingMerchantDeatilsPage = () => {
                 bgcolor: "#fff",
                 borderRadius: 2,
                 p: 1.5,
-                my: 3
+                my: 3,
+                minHeight: "95dvh"
             }}
         >
             <Stack direction='row' gap='10px' flexWrap="wrap"
@@ -55,128 +79,166 @@ const PendingMerchantDeatilsPage = () => {
                         }}
                     >Merchant { viewType }</Typography>
 
-                    <Box>
-                        <MerchantTextDetailsComponent 
-                            title='Name'
-                            value='James Raphel'
-                        />
-
-                        <MerchantTextDetailsComponent 
-                            title='Email'
-                            value='Embassy@gmail.com'
-                        />
-
-                        <MerchantTextDetailsComponent 
-                            title='Phone number'
-                            value='08162141984'
-                        />
-
-                        <MerchantTextDetailsComponent 
-                            title='Location'
-                            value='Abuja, Nigeria'
-                        />
-                        
-                        <MerchantTextDetailsComponent 
-                            title='Category'
-                            value='Store'
-                        />
-                        
-                        <MerchantTextDetailsComponent 
-                            title='About'
-                            value='Lorem ipsum dolor sit amet consectetur. Leo et suspendisse velLorem Lorem ipsum dolor sit amet consectetur. Leo et suspendisse velLorem Lorem ipsum dolor sit amet consectetur. Leo et suspendisse velLorem Lorem ipsum dolor sit amet consectetur. Leo et suspendisse velLorem'
-                        />
-
-                        <Stack direction="row" spacing="20px"
-                            alignItems="center" my={2} 
-                        >
-                            <Typography
-                                sx={{
-                                    fontWeight: "400",
-                                    fontSize: "16px",
-                                    color: "#595757",
-                                    minWidth: "120px",
-                                    // width: "120px",
-                                }}
-                            >ID: </Typography>
-
-                            <Box
-                                onClick={() => setImagePreviewModal(true)}
-                                sx={{
-                                    height: "140px",
-                                    borderRadius: "8px",
-                                    border: `1px solid ${kolors.border}`,
-                                    overflow: "hidden"
-                                }}
-                            >
-                                <img 
-                                    src={placeProvider} 
-                                    alt='official Id'
-                                    style={{
-                                        width: "100%",
-                                        // borderRadius: "8px",
-                                        height: "100%",
-                                        objectFit: "contain",
-                                    }}
+                    {
+                        selectedMerchant ? (
+                            <Box>
+                                <MerchantTextDetailsComponent 
+                                    title='Name'
+                                    value={ selectedMerchant.firstName + " " + selectedMerchant.lastName }
                                 />
-                            </Box>
-                        </Stack>
 
-                        {
-                            viewType == "request" ? 
+                                <MerchantTextDetailsComponent 
+                                    title='Email'
+                                    value={ selectedMerchant.email }
+                                />
+
+                                <MerchantTextDetailsComponent 
+                                    title='Phone number'
+                                    value={ selectedMerchant.phoneNumber }
+                                />
+
+                                <MerchantTextDetailsComponent 
+                                    title='Location'
+                                    value=''
+                                    // value='Abuja, Nigeria'
+                                />
+                                
+                                <MerchantTextDetailsComponent 
+                                    title='Category'
+                                    value={ selectedMerchant.services.toString() }
+                                />
+                                
+                                <MerchantTextDetailsComponent 
+                                    title='About'
+                                    value=''
+                                    // value='Lorem ipsum dolor sit amet consectetur. Leo et suspendisse velLorem Lorem ipsum dolor sit amet consectetur. Leo et suspendisse velLorem Lorem ipsum dolor sit amet consectetur. Leo et suspendisse velLorem Lorem ipsum dolor sit amet consectetur. Leo et suspendisse velLorem'
+                                />
+
                                 <Stack direction="row" spacing="20px"
-                                    alignItems="center" mt={5} 
+                                    alignItems="center" my={2} 
                                 >
-                                    <Typography sx={{ minWidth: "120px" }}
-                                    > </Typography>
+                                    <Typography
+                                        sx={{
+                                            fontWeight: "400",
+                                            fontSize: "16px",
+                                            color: "#595757",
+                                            minWidth: "120px",
+                                            // width: "120px",
+                                        }}
+                                    >ID: </Typography>
 
-
-                                    <Stack direction='row' gap='20px' alignItems="center">
-                                        <Button variant="contained" size='small'
-                                            type="button"
-                                            onClick={() => { navigate("/admin/merchant/available-merchants") }}
-                                            
-                                            sx={{
-                                                ...themeBtnStyle,
-                                                fontSize: "15px",
-                                                fontWeight: "400",
-                                                // lineHeight: 14.52px;
+                                    <Box
+                                        onClick={() => {
+                                            if (selectedMerchant.identification) {
+                                                setImagePreviewModal(true);
+                                            } else {
+                                                // setImagePreviewModal(true);                                                
+                                            }
+                                        }}
+                                        sx={{
+                                            height: "140px",
+                                            borderRadius: "8px",
+                                            border: `1px solid ${kolors.border}`,
+                                            overflow: "hidden"
+                                        }}
+                                    >
+                                        <img 
+                                            src={selectedMerchant.identification} 
+                                            alt='official Id'
+                                            style={{
+                                                width: "100%",
+                                                // borderRadius: "8px",
+                                                height: "100%",
+                                                objectFit: "contain",
                                             }}
-                                        > Accept </Button>
-
-                                        <Button variant="contained" size='small'
-                                            type="button"
-                                            onClick={() => { }}
-                                            
-                                            sx={{
-                                                ...themeBtnStyle,
-
-                                                bgcolor: kolors.secondary,
-                                                color: kolors.primary,
-
-                                                "&:hover": {
-                                                    bgcolor: kolors.secondary,
-                                                    color: kolors.primary
-                                                },
-                                                "&:active": {
-                                                    bgcolor: kolors.primary,
-                                                    color: "#fff"
-                                                },
-                                                "&:focus": {
-                                                    bgcolor: kolors.secondary,
-                                                    color: kolors.primary
-                                                },
-
-                                                fontSize: "15px",
-                                                fontWeight: "400",
-                                                // lineHeight: 14.52px;
-                                            }}
-                                        > Reject </Button>
-                                    </Stack>
+                                        />
+                                    </Box>
                                 </Stack>
-                            : <></>
-                        }
 
-                    </Box>
+
+                                {
+                                    apiResponse.display && (
+                                        <Stack sx={{ width: '100%', mt: 5, mb: 2 }}>
+                                            <Alert severity={apiResponse.status ? "success" : "error"}>{apiResponse.message}</Alert>
+                                        </Stack>
+                                    )
+                                }
+
+                                {
+                                    viewType == "request" ? 
+                                        <Stack direction="row" spacing="20px"
+                                            alignItems="center" mt={5} 
+                                        >
+                                            <Typography sx={{ minWidth: "120px" }}
+                                            > </Typography>
+
+
+                                            <Stack direction='row' gap='20px' alignItems="center">
+                                                <Button variant="contained" size='small'
+                                                    type="button"
+                                                    onClick={() => { 
+                                                        reviewPendingMerchant(
+                                                            selectedMerchant.id,
+                                                            true,
+                                                            () => {
+                                                                getMerchantById(merchant_id);
+                                                            }
+                                                        );
+                                                    }}
+                                                    
+                                                    sx={{
+                                                        ...themeBtnStyle,
+                                                        fontSize: "15px",
+                                                        fontWeight: "400",
+                                                        // lineHeight: 14.52px;
+                                                    }}
+                                                > Accept </Button>
+
+                                                <Button variant="contained" size='small'
+                                                    type="button"
+                                                    onClick={() => {
+                                                        reviewPendingMerchant(
+                                                            selectedMerchant.id,
+                                                            false,
+                                                            () => {
+                                                                getMerchantById(merchant_id);
+                                                            }
+                                                        );
+                                                    }}
+                                                    
+                                                    sx={{
+                                                        ...themeBtnStyle,
+
+                                                        bgcolor: kolors.secondary,
+                                                        color: kolors.primary,
+
+                                                        "&:hover": {
+                                                            bgcolor: kolors.secondary,
+                                                            color: kolors.primary
+                                                        },
+                                                        "&:active": {
+                                                            bgcolor: kolors.primary,
+                                                            color: "#fff"
+                                                        },
+                                                        "&:focus": {
+                                                            bgcolor: kolors.secondary,
+                                                            color: kolors.primary
+                                                        },
+
+                                                        fontSize: "15px",
+                                                        fontWeight: "400",
+                                                        // lineHeight: 14.52px;
+                                                    }}
+                                                > Reject </Button>
+                                            </Stack>
+                                        </Stack>
+                                    : <></>
+                                }
+
+                            </Box>
+                        ) : <LoadingDataComponent />
+                    }
+
                 </Box>
             </Box>
 
@@ -187,7 +249,7 @@ const PendingMerchantDeatilsPage = () => {
             >
                 <Box>
                     <img 
-                        src={placeProvider} 
+                        src={selectedMerchant?.identification || ''} 
                         alt='official Id'
                         style={{
                             width: "100%",

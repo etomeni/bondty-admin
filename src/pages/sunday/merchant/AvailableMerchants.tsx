@@ -1,38 +1,58 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { createSearchParams, useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import kolors from '@/constants/kolors';
-
 
 import NotificationComponent from '@/components/sunday/NotificationComponent';
 import SearchwordComponent from '@/components/sunday/SearchwordComponent';
 import CustomTabsHeaderBar from '@/components/sunday/CustomTabsHeaderBar';
 import { CustomTabContentPanel } from '@/components/sunday/CustomTabContentPanel';
 import AvailableMerchantsValueComponent from '@/components/sunday/merchant/AvailableMerchantsValueComponent';
+import { useMerchantHook } from '@/hooks/merchants/useMerchantHook';
 
 
-const merchantValueData = [
-    {
-        merchantName: "Embassy",
-        category: "Events",
-        email: "Embassy@gmail.com",
-    },
-    {
-        merchantName: "Treasure Nelson",
-        category: "Locations",
-        email: "Embassy@gmail.com",
-    },
-    {
-        merchantName: "James Raphel",
-        category: "Store",
-        email: "Embassy@gmail.com",
-    },
-];
 
 const AvailableMerchantsPage = () => {
     const navigate = useNavigate();
     const [tabsValue, setTabsValue] = useState(0);
+
+    const {
+        // limitNo, setLimitNo,
+        // currentPageNo, totalRecords,
+        // apiResponse,
+
+        merchants,
+        getMerchantsByCategory,
+    } = useMerchantHook();
+
+    useEffect(() => {
+        switch (tabsValue) {
+            case 0:
+                getMerchantsByCategory("stores");
+                break;
+        
+            case 1:
+                getMerchantsByCategory("locations");
+                break;
+        
+            case 2:
+                getMerchantsByCategory("place"); // √
+                break;
+        
+            case 3:
+                getMerchantsByCategory("security");
+                break;
+        
+            case 4:
+                getMerchantsByCategory("books");
+                break;
+        
+            default:
+                getMerchantsByCategory("store");
+                break;
+        }
+    }, [tabsValue]);
 
     
     return (
@@ -42,7 +62,8 @@ const AvailableMerchantsPage = () => {
                 bgcolor: "#fff",
                 borderRadius: 2,
                 p: 1.5,
-                my: 3
+                my: 3,
+                minHeight: "95dvh"
             }}
         >
             <Stack direction='row' gap='10px' flexWrap="wrap"
@@ -64,70 +85,89 @@ const AvailableMerchantsPage = () => {
 
                 <CustomTabContentPanel value={tabsValue} index={0}>
                     <AvailableMerchantsValueComponent 
-                        action={() => {
+                        action={(merchantCategory, merchant) => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-store",
-                                // search: `?${createSearchParams({ viewType: "credentials" })}`,
+                                search: `?${createSearchParams({ 
+                                    viewType: "credentials",
+                                    category: merchantCategory,
+                                    id: merchant.id,
+                                })}`,
                             });
                         }}
                         merchantCategory='Store'
-                        merchantValues={merchantValueData}
+                        merchantValues={merchants}
                     />
                 </CustomTabContentPanel>
 
                 <CustomTabContentPanel value={tabsValue} index={1}>
                     <AvailableMerchantsValueComponent 
-                        action={() => {
+                        action={(merchantCategory, merchant) => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-location-details",
-                                // search: `?${createSearchParams({ viewType: "credentials" })}`,
+                                search: `?${createSearchParams({ 
+                                    viewType: "credentials",
+                                    category: merchantCategory,
+                                    id: merchant.id,
+                                })}`,
                             });
                         }}
                         merchantCategory='Locations'
-                        merchantValues={merchantValueData}
+                        merchantValues={merchants}
                     />
                 </CustomTabContentPanel>
              
                 <CustomTabContentPanel value={tabsValue} index={2}>
                     <AvailableMerchantsValueComponent 
-                        action={() => {
+                        action={(merchantCategory, merchant) => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-events-details",
-                                // search: `?${createSearchParams({ viewType: "credentials" })}`,
+                                search: `?${createSearchParams({ 
+                                    viewType: "credentials",
+                                    category: merchantCategory,
+                                    id: merchant.id,
+                                })}`,
                             });
                         }}
                         merchantCategory='Events'
-                        merchantValues={merchantValueData}
+                        merchantValues={merchants}
                     />
                 </CustomTabContentPanel>
 
                 <CustomTabContentPanel value={tabsValue} index={3}>
                     <AvailableMerchantsValueComponent 
-                        action={() => {
+                        action={(merchantCategory, merchant) => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-security-details",
-                                // search: `?${createSearchParams({ viewType: "credentials" })}`,
+                                search: `?${createSearchParams({ 
+                                    viewType: "credentials",
+                                    category: merchantCategory,
+                                    id: merchant.id,
+                                })}`,
                             });
                         }}
                         merchantCategory='Security'
-                        merchantValues={merchantValueData}
+                        merchantValues={merchants}
                     />
                 </CustomTabContentPanel>
 
                 <CustomTabContentPanel value={tabsValue} index={4}>
                     <AvailableMerchantsValueComponent 
-                        action={() => {
+                        action={(merchantCategory, merchant) => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-books-details",
-                                // search: `?${createSearchParams({ viewType: "credentials" })}`,
+                                search: `?${createSearchParams({ 
+                                    viewType: "credentials",
+                                    category: merchantCategory,
+                                    id: merchant.id,
+                                })}`,
                             });
                         }}
                         merchantCategory='Books'
-                        merchantValues={merchantValueData}
+                        merchantValues={merchants}
                     />
                 </CustomTabContentPanel>
             </Box>
-            
         </Box>
     );
 };

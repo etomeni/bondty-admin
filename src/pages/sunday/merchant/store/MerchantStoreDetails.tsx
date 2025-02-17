@@ -22,6 +22,10 @@ const MerchantStoreDetailsPage = () => {
     // const [orderView, setOrderView] = useState<"list" | "details">("list");
     // const [orderCategory, setOrderCategory] = useState<"Merchant order" | "Bondyt order">("Bondyt order");
 
+    // const viewType = getQueryParams("viewType");
+    // const category = getQueryParams("category");
+    // const merchant_id = getQueryParams("id");
+
     // useEffect(() => {
     //     setOrderView("list");
     // }, [tabsValue]);

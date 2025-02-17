@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
@@ -8,7 +8,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import { useUserStore } from "@/state/userStore";
 import { apiEndpoint, passwordRegex } from "@/util/resources";
-import { setEncryptedLocalStorage } from "@/util/storage";
+import { getDecryptedLocalStorage, setEncryptedLocalStorage } from "@/util/storage";
 import { useSettingStore } from "@/state/settingStore";
 
 
@@ -43,9 +43,25 @@ export function useLoginAuth() {
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const { 
-        handleSubmit, register, formState: { errors, isValid, isSubmitting } 
+        handleSubmit, register, setValue, formState: { errors, isValid, isSubmitting } 
     } = useForm({ resolver: yupResolver(formSchema), mode: 'onBlur', reValidateMode: 'onChange' });
         
+
+    useEffect(() => {
+        const uad = getDecryptedLocalStorage('uad');
+        if (uad) {
+            setRememberMe(true);
+            setValue(
+                "email", uad.email,
+                { shouldDirty: true, shouldTouch: true, shouldValidate: true }
+            );
+            setValue(
+                "password", uad.password,
+                { shouldDirty: true, shouldTouch: true, shouldValidate: true }
+            );
+        }
+    }, []);
+
     const _onSubmit = async (formData: typeof formSchema.__outputType) => {
         // console.log(formData);
         setApiResponse({

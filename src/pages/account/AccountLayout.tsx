@@ -29,15 +29,15 @@ const AccountLayout = () => {
         if (pathname.includes("admin/marketing")) setValue(4);
         if (pathname.includes("admin/ad-manager")) setValue(5);
         if (pathname.includes("admin/payment")) setValue(6);
-        // if (pathname.includes("admin/contacts")) setValue(7);
-        if (pathname.includes("admin/merchant")) setValue(8);
-           // Isaac's paths
-           if (pathname.includes("admin/store")) setValue(9);
-           if (pathname.includes("admin/library")) setValue(10);
-           if (pathname.includes("admin/bonded")) setValue(11);
-           if (pathname.includes("admin/dates")) setValue(12);
-           if (pathname.includes("admin/places")) setValue(13);
-           if (pathname.includes("admin/subscriptions")) setValue(14);
+        if (pathname.includes("admin/merchant")) setValue(7);
+
+        // Isaac's paths
+        if (pathname.includes("admin/store")) setValue(8);
+        if (pathname.includes("admin/library")) setValue(9);
+        if (pathname.includes("admin/bonded")) setValue(10);
+        if (pathname.includes("admin/dates")) setValue(11);
+        if (pathname.includes("admin/places")) setValue(12);
+        if (pathname.includes("admin/subscriptions")) setValue(13);
     }, [pathname]);
 
 
@@ -75,37 +75,37 @@ const AccountLayout = () => {
         },
         {
             title: 'Merchant',
-            status: value == 8 ? true : false,
+            status: value == 7 ? true : false,
             baseLink: "/admin/merchant"
         },
         {
             title: 'Store',
-            status: value == 9 ? true : false,
+            status: value == 8 ? true : false,
             baseLink: "/admin/store"
         },
         {
             title: 'Library',
-            status: value == 10 ? true : false,
+            status: value == 9 ? true : false,
             baseLink: "/admin/library"
         },
         {
             title: 'Bonded',
-            status: value == 11 ? true : false,
+            status: value == 10 ? true : false,
             baseLink: "/admin/bonded"
         },
         {
             title: 'Dates',
-            status: value == 12 ? true : false,
+            status: value == 11 ? true : false,
             baseLink: "/admin/dates"
         },
         {
             title: 'Places',
-            status: value == 13 ? true : false,
+            status: value == 12 ? true : false,
             baseLink: "/admin/places"
         },
         {
             title: 'Subscriptions',
-            status: value == 14 ? true : false,
+            status: value == 13 ? true : false,
             baseLink: "/admin/subscriptions"
         },
     ];
