@@ -1,21 +1,29 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import kolors from '@/constants/kolors';
-import NotificationComponent from '@/components/sunday/NotificationComponent';
-import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
-import MerchantTopOptionsComponent from '@/components/sunday/merchant/MerchantTopOptionsComponent';
-import SearchwordComponent from '@/components/sunday/SearchwordComponent';
-import TopTotalCardComponent from '@/components/sunday/merchant/TopTotalCardComponent';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import IconButton from '@mui/material/IconButton';
 import TuneIcon from '@mui/icons-material/Tune';
-import { useState } from 'react';
+
+import SearchwordComponent from '@/components/sunday/SearchwordComponent';
+import NotificationComponent from '@/components/sunday/NotificationComponent';
+import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
+import TopTotalCardComponent from '@/components/sunday/merchant/TopTotalCardComponent';
+import MerchantTopOptionsComponent from '@/components/sunday/merchant/MerchantTopOptionsComponent';
+import kolors from '@/constants/kolors';
+import { currencyDisplay, formatedNumber, getQueryParams } from '@/util/resources';
+import { useEventHook } from '@/hooks/merchants/useEventHook';
+import LoadingDataComponent from '@/components/LoadingData';
+import { eventMerchantInterface } from '@/typeInterfaces/merchants.interface';
 
 
 const MerchantEventsDetailsPage = () => {
+    const navigate = useNavigate();
     const [filterValue, setFilterValue] = useState("All");
 
     const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
@@ -26,6 +34,32 @@ const MerchantEventsDetailsPage = () => {
     const handleCloseFilter = () => {
         setFilterAnchorEl(null);
     };
+
+    const [activeEvent, setActiveEvent] = useState<eventMerchantInterface>();
+    // const viewType = getQueryParams("viewType");
+    const category = getQueryParams("category");
+    const merchant_id = getQueryParams("id");
+
+
+    const {
+        // isSubmitting,
+        
+        eventMerchant,
+        eventMerchantAnalytics,
+
+        getEventMerchant,
+        getEventMerchantAnalytics,
+        searchEventMerchant,
+    } = useEventHook();
+
+    useEffect(() => {
+        if (merchant_id) {
+            getEventMerchant(merchant_id);
+            getEventMerchantAnalytics(merchant_id);
+        } else {
+            navigate(-1);
+        }
+    }, []);
 
     
 
@@ -47,7 +81,10 @@ const MerchantEventsDetailsPage = () => {
                 <NotificationComponent />
             </Stack>
 
-            <MerchantTopOptionsComponent />
+            <MerchantTopOptionsComponent 
+                merchantCaterory={category}
+                merchantId={merchant_id}
+            />
 
 
             <Stack direction="row" gap="20px" flexWrap="wrap" mt={5}
@@ -56,17 +93,20 @@ const MerchantEventsDetailsPage = () => {
             >
                 <TopTotalCardComponent 
                     title='Total sales made'
-                    value='$2,000'
+                    value={ eventMerchantAnalytics && eventMerchantAnalytics.total_sales ? currencyDisplay(Number(eventMerchantAnalytics.total_sales)) : "" }
+                    // value={eventMerchantAnalytics?.total_sales}
                 />
 
                 <TopTotalCardComponent 
-                    title='Total reservations'
-                    value='200'
+                    title='Total tickets sold'
+                    value={ eventMerchantAnalytics && eventMerchantAnalytics.totalTicketsSold ? formatedNumber(Number(eventMerchantAnalytics.totalTicketsSold)) : "" }
+                    // value='200'
                 />
 
                 <TopTotalCardComponent 
-                    title='Total declined orders'
-                    value='2'
+                    title='Total event listed'
+                    value={ eventMerchantAnalytics && eventMerchantAnalytics.numberOfEvents ? formatedNumber(Number(eventMerchantAnalytics.numberOfEvents)) : "" }
+                    // value='2'
                 />
             </Stack>
 
@@ -147,7 +187,16 @@ const MerchantEventsDetailsPage = () => {
 
                         <Box>
                             <SearchwordComponent 
-                                performSearch={() => {}}
+                                performSearch={(searchWord) => {
+                                    console.log(searchWord);
+
+                                    if (searchWord == "") {
+                                        getEventMerchant(merchant_id);
+                                        getEventMerchantAnalytics(merchant_id);
+                                    } else {
+                                        searchEventMerchant(merchant_id, searchWord);
+                                    }
+                                }}
                             />
                         </Box>
                     </Stack>
@@ -163,8 +212,73 @@ const MerchantEventsDetailsPage = () => {
                         >
                             <Grid size={{ xs: 12, md: 5, lg: 4 }}>
                                 <Box>
+                                    {
+                                        eventMerchant ? 
+                                            eventMerchant.map((event) => (
+                                                <Stack key={event.id} direction="row" // alignItems="center"
+                                                    spacing="10px" mb={3}
+                                                    onClick={() => {
+                                                        setActiveEvent(event);
 
+                                                        getEventMerchant(`${event.id}`);
+                                                    }}
+                                                    sx={{
+                                                        bgcolor: activeEvent && activeEvent.id == event.id ? kolors.tertiary : kolors.bg,
+                                                        borderRadius: "4px"
+                                                    }}
+                                                >
+                                                    <Box
+                                                        sx={{
+                                                            maxWidth: "94px",
+                                                            maxHeight: "94px",
+                                                            borderRadius: "4px",
+                                                            overflow: "hidden"
+                                                        }}
+                                                    >
+                                                        <img 
+                                                            src={event.banner} 
+                                                            alt='place image'
+                                                            style={{
+                                                                width: "100%",
+                                                                // borderRadius: "8px",
+                                                                height: "100%",
+                                                                objectFit: "contain",
+                                                            }}
+                                                        />
+                                                    </Box>
+
+                                                    <Box py={1}>
+                                                        <Typography noWrap
+                                                            sx={{
+                                                                fontSize: "13px",
+                                                                fontWeight: "600",
+                                                                // lineHeight: "12px",
+                                                                color: "#161616"
+                                                            }}
+                                                        >{event.name}</Typography>
+
+                                                        <Typography noWrap
+                                                            sx={{
+                                                                fontSize: "13px",
+                                                                fontWeight: "600",
+                                                                // lineHeight: "12px",
+                                                                color: "#BCBABA",
+                                                                textTransform: "capitalize"
+                                                            }}
+                                                        >{event.location}.</Typography>
+
+                                                        {/* <Rating name="read-only"
+                                                            value={event.rating || 0} 
+                                                            readOnly
+                                                            size='medium'
+                                                        /> */}
+                                                    </Box>
+                                                </Stack>
+                                            ))
+                                        : <LoadingDataComponent />
+                                    }
                                 </Box>
+
                             </Grid>
 
                             <Grid size={{ xs: 12, md: 7, lg: 8 }}

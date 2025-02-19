@@ -24,6 +24,12 @@ export function useCheckAuth() {
         if (!access_token || !refresh_token || !user_data ) {
             setIsLoading(false);
             return;
+        } else {
+            if (user_data && access_token) _autoLogin(user_data);
+            _handleRefreshToken(access_token, refresh_token);
+            setIsLoading(false);
+
+            return;
         }
         
         try {

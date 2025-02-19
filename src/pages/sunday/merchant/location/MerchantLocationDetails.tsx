@@ -1,23 +1,69 @@
-// import { useEffect, useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import kolors from '@/constants/kolors';
-import NotificationComponent from '@/components/sunday/NotificationComponent';
-import Typography from '@mui/material/Typography';
-import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
-import MerchantTopOptionsComponent from '@/components/sunday/merchant/MerchantTopOptionsComponent';
-import SearchwordComponent from '@/components/sunday/SearchwordComponent';
-import StarIcon from '@mui/icons-material/Star';
-import TopTotalCardComponent from '@/components/sunday/merchant/TopTotalCardComponent';
-import Button from '@mui/material/Button';
-import { themeBtnStyle } from '@/util/mui';
-import Rating from '@mui/material/Rating';
 import Grid from '@mui/material/Grid2';
+import Button from '@mui/material/Button';
+import Rating from '@mui/material/Rating';
+import Typography from '@mui/material/Typography';
+import StarIcon from '@mui/icons-material/Star';
+
+import { themeBtnStyle } from '@/util/mui';
+import SearchwordComponent from '@/components/sunday/SearchwordComponent';
+import NotificationComponent from '@/components/sunday/NotificationComponent';
+import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
+import TopTotalCardComponent from '@/components/sunday/merchant/TopTotalCardComponent';
+import MerchantTopOptionsComponent from '@/components/sunday/merchant/MerchantTopOptionsComponent';
+import { currencyDisplay, formatedNumber, getQueryParams } from '@/util/resources';
+import { usePlaceHook } from '@/hooks/merchants/useplaceHook';
+import LoadingDataComponent from '@/components/LoadingData';
+import { placeMerchantInterface } from '@/typeInterfaces/merchants.interface';
+import { timeAgo } from '@/util/timeNdate';
+import ConfirmationDialog from '@/components/sunday/ConfirmationDialog';
+// import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg";
 
 
+let dialogData = {
+    action: () => {},
+    // state: false,
+    title: '',
+    description: '',
+}
 
 const MerchantLocationDetailsPage = () => {
+    const navigate = useNavigate();
+    // const viewType = getQueryParams("viewType");
+    const category = getQueryParams("category");
+    const merchant_id = getQueryParams("id");
+    const [activePlace, setActivePlace] = useState<placeMerchantInterface>();
+
+    const [confirmDialog, setConfirmDialog] = useState(false);
+
+    const {
+        isSubmitting,
+        
+        placeMerchant,
+        selectedPlace, setSelectedPlace,
+        placeMerchantAnalytics,
+
+        getPlaceMerchant,
+        deletePlace,
+        getPlaceById,
+        getPlaceMerchantAnalytics,
+        searchPlaceMerchant
+    } = usePlaceHook();
+
+    useEffect(() => {
+        if (merchant_id) {
+            getPlaceMerchant(merchant_id);
+            getPlaceMerchantAnalytics(merchant_id);
+        } else {
+            navigate(-1);
+        }
+    }, []);
+    
 
 
     return (
@@ -38,7 +84,10 @@ const MerchantLocationDetailsPage = () => {
                 <NotificationComponent />
             </Stack>
 
-            <MerchantTopOptionsComponent />
+            <MerchantTopOptionsComponent 
+                merchantCaterory={category}
+                merchantId={merchant_id}
+            />
 
 
             <Stack direction="row" gap="20px" flexWrap="wrap" mt={5}
@@ -47,17 +96,17 @@ const MerchantLocationDetailsPage = () => {
             >
                 <TopTotalCardComponent 
                     title='Total sales made'
-                    value='$2,000'
+                    value={currencyDisplay(Number(placeMerchantAnalytics?.totalSales || 0))}
                 />
 
                 <TopTotalCardComponent 
                     title='Total reservations'
-                    value='200'
+                    value={formatedNumber(Number(placeMerchantAnalytics?.totalReservations || 0))}
                 />
 
                 <TopTotalCardComponent 
                     title='Total declined orders'
-                    value='2'
+                    value={formatedNumber(Number(placeMerchantAnalytics?.totalDeclined || 0))}
                 />
             </Stack>
 
@@ -74,54 +123,21 @@ const MerchantLocationDetailsPage = () => {
                         alignItems="center" justifyContent="space-between"
                         bgcolor="#F2F2F2" p={1}
                     >
-                        <Box>
-                            <Stack direction='row' gap='20px' alignItems="center">
-                                <Button variant="contained" size='small'
-                                    type="button"
-                                    onClick={() => { }}
-                                    
-                                    sx={{
-                                        ...themeBtnStyle,
-                                        fontSize: "15px",
-                                        fontWeight: "400",
-                                        // lineHeight: 14.52px;
-                                    }}
-                                > Block Location </Button>
-
-                                <Button variant="contained" size='small'
-                                    type="button"
-                                    onClick={() => { }}
-                                    
-                                    sx={{
-                                        ...themeBtnStyle,
-
-                                        bgcolor: kolors.secondary,
-                                        color: kolors.primary,
-
-                                        "&:hover": {
-                                            bgcolor: kolors.secondary,
-                                            color: kolors.primary
-                                        },
-                                        "&:active": {
-                                            bgcolor: kolors.primary,
-                                            color: "#fff"
-                                        },
-                                        "&:focus": {
-                                            bgcolor: kolors.secondary,
-                                            color: kolors.primary
-                                        },
-
-                                        fontSize: "15px",
-                                        fontWeight: "400",
-                                        // lineHeight: 14.52px;
-                                    }}
-                                > Delete Location </Button>
-                            </Stack>
-                        </Box>
+                        <Box> </Box>
 
                         <Box>
                             <SearchwordComponent 
-                                performSearch={() => {}}
+                                performSearch={(searchWord) => {
+                                    console.log(searchWord);
+
+                                    if (searchWord == "") {
+                                        getPlaceMerchant(merchant_id);
+                                        getPlaceMerchantAnalytics(merchant_id);
+                                    } else {
+                                        searchPlaceMerchant(merchant_id, searchWord);
+                                    }
+                                    
+                                }}
                             />
                         </Box>
                     </Stack>
@@ -137,7 +153,74 @@ const MerchantLocationDetailsPage = () => {
                         >
                             <Grid size={{ xs: 12, md: 5, lg: 4 }}>
                                 <Box>
+                                    {
+                                        placeMerchant ? 
+                                            placeMerchant.map((location) => (
+                                                <Stack key={location.id} direction="row" // alignItems="center"
+                                                    spacing="10px" mb={3}
+                                                    onClick={() => {
+                                                        setActivePlace(location);
 
+                                                        getPlaceById(location.id);
+                                                    }}
+                                                    sx={{
+                                                        bgcolor: activePlace && activePlace.id == location.id ? kolors.tertiary : kolors.bg,
+                                                        borderRadius: "4px"
+                                                    }}
+                                                >
+                                                    <Box
+                                                        sx={{
+                                                            maxWidth: "94px",
+                                                            maxHeight: "94px",
+                                                            borderRadius: "4px",
+                                                            overflow: "hidden"
+                                                        }}
+                                                    >
+                                                        <img 
+                                                            src={location.placePhotos[0].image_url} 
+                                                            alt='place image'
+                                                            style={{
+                                                                width: "100%",
+                                                                // borderRadius: "8px",
+                                                                height: "100%",
+                                                                objectFit: "contain",
+                                                            }}
+                                                        />
+                                                    </Box>
+
+                                                    <Box py={1}>
+                                                        <Typography noWrap
+                                                            sx={{
+                                                                fontSize: "13px",
+                                                                fontWeight: "600",
+                                                                // lineHeight: "12px",
+                                                                color: "#161616"
+                                                            }}
+                                                        >{location.name}</Typography>
+                                                        {/* >Fine house resturant</Typography> */}
+
+                                                        <Typography noWrap
+                                                            sx={{
+                                                                fontSize: "13px",
+                                                                fontWeight: "600",
+                                                                // lineHeight: "12px",
+                                                                color: "#BCBABA",
+                                                                textTransform: "capitalize"
+                                                            }}
+                                                        >{location.location.state + ", " + location.location.country}.</Typography>
+                                                        {/* >Abuja, Nigeria.</Typography> */}
+
+                                                        <Rating name="read-only"
+                                                            value={location.rating || 0} 
+                                                            readOnly
+                                                            size='medium'
+                                                        />
+                                                    </Box>
+                                                </Stack>
+                                            ))
+                                        : <LoadingDataComponent />
+                                    }
+                                    
                                 </Box>
                             </Grid>
 
@@ -148,213 +231,314 @@ const MerchantLocationDetailsPage = () => {
                                     p: 2
                                 }}
                             >
-                                <Box>
-                                    <Stack direction="row" rowGap="30px" columnGap="20px"  flexWrap="wrap"
-                                        alignItems="center" justifyContent={{xs: "center",  md: "space-between" }}
-                                        // bgcolor="#F2F2F2" p={1}
-                                    >
-                                        <Box
-                                            sx={{
-                                                bgcolor: "#F2F2F2",
-                                                borderRadius: "4px",
-                                                height: "70px",
-                                                width: "120px",
-                                                p: 2,
-                                                display: "flex",
-                                                flexDirection: "column"
-                                            }}
-                                        >
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "500",
-                                                    fontSize: "12px",
-                                                    color: "#BCBABA",
-                                                }}
-                                            >Total Sales</Typography>
+                                {
+                                    selectedPlace ? 
+                                        <Box>
+                                            <Box mb={3}>
+                                                <Stack direction='row' gap='20px' alignItems="center">
+                                                    <Button variant="contained" size='small'
+                                                        type="button"
+                                                        onClick={() => { }}
+                                                        
+                                                        sx={{
+                                                            ...themeBtnStyle,
+                                                            fontSize: "15px",
+                                                            fontWeight: "400",
+                                                            // lineHeight: 14.52px;
+                                                        }}
+                                                    > Block Location </Button>
 
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "600",
-                                                    fontSize: "16px",
-                                                    color: kolors.dark,
-                                                    textAlign: "center",
-                                                    mt: "auto",
-                                                }}
-                                            >$0.00</Typography>
-                                        </Box>
+                                                    <Button variant="contained" size='small'
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setConfirmDialog(true);
+                    
+                                                            dialogData = {
+                                                                action: () => {
+                                                                    deletePlace(
+                                                                        selectedPlace.data.id,
+                                                                        () => {
+                                                                            setConfirmDialog(false);
+                                                                            dialogData = {
+                                                                                action: () => {},
+                                                                                // state: false,
+                                                                                title: '',
+                                                                                description: '',
+                                                                            };
 
-                                        <Box
-                                            sx={{
-                                                bgcolor: "#F2F2F2",
-                                                borderRadius: "4px",
-                                                height: "70px",
-                                                width: "120px",
-                                                p: 2,
-                                                display: "flex",
-                                                flexDirection: "column"
-                                            }}
-                                        >
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "500",
-                                                    fontSize: "12px",
-                                                    color: "#BCBABA",
-                                                }}
-                                            >Total reservations</Typography>
+                                                                            setActivePlace(undefined);
+                                                                            setSelectedPlace(undefined);
 
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "600",
-                                                    fontSize: "16px",
-                                                    color: kolors.dark,
-                                                    textAlign: "center",
-                                                    mt: "auto",
-                                                }}
-                                            >0</Typography>
-                                        </Box>
+                                                                            getPlaceMerchant(merchant_id);
+                                                                            getPlaceMerchantAnalytics(merchant_id);
+                                                                        }
+                                                                    );
+                                                                },
+                                                                // state: false,
+                                                                title: 'Confirm',
+                                                                description: 'Are you sure, you want to proceed with deleting this location?',
+                                                            };
+                                                        }}
+                                                        
+                                                        sx={{
+                                                            ...themeBtnStyle,
 
-                                        <Box
-                                            sx={{
-                                                bgcolor: "#F2F2F2",
-                                                borderRadius: "4px",
-                                                height: "70px",
-                                                width: "120px",
-                                                p: 2,
-                                                display: "flex",
-                                                flexDirection: "column"
-                                            }}
-                                        >
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "500",
-                                                    fontSize: "12px",
-                                                    color: "#BCBABA",
-                                                }}
-                                            >Rooms booked</Typography>
+                                                            bgcolor: kolors.secondary,
+                                                            color: kolors.primary,
 
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "600",
-                                                    fontSize: "16px",
-                                                    color: kolors.dark,
-                                                    textAlign: "center",
-                                                    mt: "auto",
-                                                }}
-                                            >6</Typography>
-                                        </Box>
+                                                            "&:hover": {
+                                                                bgcolor: kolors.secondary,
+                                                                color: kolors.primary
+                                                            },
+                                                            "&:active": {
+                                                                bgcolor: kolors.primary,
+                                                                color: "#fff"
+                                                            },
+                                                            "&:focus": {
+                                                                bgcolor: kolors.secondary,
+                                                                color: kolors.primary
+                                                            },
 
-                                        <Box
-                                            sx={{
-                                                bgcolor: "#F2F2F2",
-                                                borderRadius: "4px",
-                                                height: "70px",
-                                                width: "120px",
-                                                p: 2,
-                                                display: "flex",
-                                                flexDirection: "column"
-                                            }}
-                                        >
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "500",
-                                                    fontSize: "12px",
-                                                    color: "#BCBABA",
-                                                }}
-                                            >Added to favourite</Typography>
+                                                            fontSize: "15px",
+                                                            fontWeight: "400",
+                                                            // lineHeight: 14.52px;
+                                                        }}
+                                                    > Delete Location </Button>
+                                                </Stack>
+                                            </Box>
 
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "600",
-                                                    fontSize: "16px",
-                                                    color: kolors.dark,
-                                                    textAlign: "center",
-                                                    mt: "auto",
-                                                }}
-                                            >10</Typography>
-                                        </Box>
-                                    </Stack>
-
-                                    <Box mt={2}>
-                                        <Typography
-                                            sx={{
-                                                fontWeight: "500",
-                                                fontSize: "13px",
-                                                color: kolors.dark,
-                                                mb: 1
-                                            }}
-                                        >Customer feedback</Typography>
-
-                                        <Box
-                                            sx={{
-                                                bgcolor: "#F2F2F2",
-                                                p: 2,
-                                                borderRadius: "8px"
-                                            }}
-                                        >
-                                            <Stack direction="row" spacing="20px"
-                                                alignItems="center" justifyContent="space-between"
+                                            <Stack direction="row" rowGap="30px" columnGap="20px"  flexWrap="wrap"
+                                                alignItems="center" justifyContent={{xs: "center",  md: "space-between" }}
+                                                // bgcolor="#F2F2F2" p={1}
                                             >
-                                                <Typography
+                                                <Box
                                                     sx={{
-                                                        fontWeight: "600",
-                                                        fontSize: "13px",
-                                                        color: kolors.dark,
+                                                        bgcolor: "#F2F2F2",
+                                                        borderRadius: "4px",
+                                                        height: "70px",
+                                                        width: "120px",
+                                                        p: 2,
+                                                        display: "flex",
+                                                        flexDirection: "column"
                                                     }}
-                                                >ID: 1234hg53</Typography>
+                                                >
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "500",
+                                                            fontSize: "12px",
+                                                            color: "#BCBABA",
+                                                        }}
+                                                    >Total Sales</Typography>
 
-                                                <Typography
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                            fontSize: "16px",
+                                                            color: kolors.dark,
+                                                            textAlign: "center",
+                                                            mt: "auto",
+                                                        }}
+                                                    >{currencyDisplay(Number(selectedPlace.totalSales))}</Typography>
+                                                </Box>
+
+                                                <Box
                                                     sx={{
-                                                        fontWeight: "400",
-                                                        fontSize: "13px",
-                                                        color: "#BCBABA"
+                                                        bgcolor: "#F2F2F2",
+                                                        borderRadius: "4px",
+                                                        height: "70px",
+                                                        width: "120px",
+                                                        p: 2,
+                                                        display: "flex",
+                                                        flexDirection: "column"
                                                     }}
-                                                >2 days ago</Typography>
+                                                >
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "500",
+                                                            fontSize: "12px",
+                                                            color: "#BCBABA",
+                                                        }}
+                                                    >Total reservations</Typography>
+
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                            fontSize: "16px",
+                                                            color: kolors.dark,
+                                                            textAlign: "center",
+                                                            mt: "auto",
+                                                        }}
+                                                    >{formatedNumber(Number(selectedPlace.totalReservations))}</Typography>
+                                                </Box>
+
+                                                <Box
+                                                    sx={{
+                                                        bgcolor: "#F2F2F2",
+                                                        borderRadius: "4px",
+                                                        height: "70px",
+                                                        width: "120px",
+                                                        p: 2,
+                                                        display: "flex",
+                                                        flexDirection: "column"
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "500",
+                                                            fontSize: "12px",
+                                                            color: "#BCBABA",
+                                                        }}
+                                                    >Rooms booked</Typography>
+
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                            fontSize: "16px",
+                                                            color: kolors.dark,
+                                                            textAlign: "center",
+                                                            mt: "auto",
+                                                        }}
+                                                    >{formatedNumber(selectedPlace.data.placeReservations.length)}</Typography>
+                                                </Box>
+
+                                                <Box
+                                                    sx={{
+                                                        bgcolor: "#F2F2F2",
+                                                        borderRadius: "4px",
+                                                        height: "70px",
+                                                        width: "120px",
+                                                        p: 2,
+                                                        display: "flex",
+                                                        flexDirection: "column"
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "500",
+                                                            fontSize: "12px",
+                                                            color: "#BCBABA",
+                                                        }}
+                                                    >Added to favourite</Typography>
+
+                                                    <Typography
+                                                        sx={{
+                                                            fontWeight: "600",
+                                                            fontSize: "16px",
+                                                            color: kolors.dark,
+                                                            textAlign: "center",
+                                                            mt: "auto",
+                                                        }}
+                                                    >{formatedNumber(Number(selectedPlace.totalFavorites))}</Typography>
+                                                </Box>
                                             </Stack>
 
-
-                                            <Stack direction="row" spacing="20px"
-                                                alignItems="center"
-                                            >
-                                                <Rating
-                                                    name="text-feedback"
-                                                    value={4}
-                                                    readOnly
-                                                    precision={1}
-                                                    emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-                                                />
-
+                                            <Box mt={2}>
                                                 <Typography
                                                     sx={{
                                                         fontWeight: "500",
-                                                        fontSize: "24px",
+                                                        fontSize: "13px",
                                                         color: kolors.dark,
-                                                        mt: 3
+                                                        mb: 1
                                                     }}
-                                                >4.0</Typography>
-                                            </Stack>
+                                                >Customer feedback</Typography>
 
+                                                {
+                                                    selectedPlace.data.placeReservations.map((feedback) => (
+                                                        <Box key={feedback.id}
+                                                            sx={{
+                                                                bgcolor: "#F2F2F2",
+                                                                p: 2, mb: 2,
+                                                                borderRadius: "8px"
+                                                            }}
+                                                        >
+                                                            <Stack direction="row" spacing="20px"
+                                                                alignItems="center" justifyContent="space-between"
+                                                            >
+                                                                <Typography
+                                                                    sx={{
+                                                                        fontWeight: "600",
+                                                                        fontSize: "13px",
+                                                                        color: kolors.dark,
+                                                                    }}
+                                                                >ID: {feedback.id}</Typography>
 
-                                            <Typography
-                                                sx={{
-                                                    fontSize: "13px",
-                                                    fontWeight: "400",
-                                                    color: "#595757",
-                                                }}
-                                            >
-                                                Lacus sed viverra tellus in hac habitasse platea dictumst. 
-                                                Malesuada nunc vel risus commodo. 
-                                                In mollis nunc sed id semper risus in hendrerit. 
-                                            </Typography>
+                                                                <Typography
+                                                                    sx={{
+                                                                        fontWeight: "400",
+                                                                        fontSize: "13px",
+                                                                        color: "#BCBABA"
+                                                                    }}
+                                                                >
+                                                                    { feedback.rating?.created_at ? timeAgo(feedback.rating.created_at) : "" }
+                                                                </Typography>
+                                                                {/* >2 days ago</Typography> */}
+                                                            </Stack>
 
+                                                            <Stack direction="row" spacing="20px"
+                                                                alignItems="center"
+                                                            >
+                                                                <Rating
+                                                                    name="text-feedback"
+                                                                    value={feedback.rating?.rating}
+                                                                    readOnly
+                                                                    // precision={1}
+                                                                    emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                                                                />
+
+                                                                <Typography
+                                                                    sx={{
+                                                                        fontWeight: "500",
+                                                                        fontSize: "24px",
+                                                                        color: kolors.dark,
+                                                                        mt: 3
+                                                                    }}
+                                                                >{feedback.rating?.rating}</Typography>
+                                                            </Stack>
+
+                                                            <Typography
+                                                                sx={{
+                                                                    fontSize: "13px",
+                                                                    fontWeight: "400",
+                                                                    color: "#595757",
+                                                                }}
+                                                            > { feedback.rating?.feedback } </Typography>
+                                                        </Box>
+                                                    ))
+                                                }
+
+                                            </Box>
                                         </Box>
-                                    </Box>
-                                </Box>
+                                    : isSubmitting ?
+                                        <LoadingDataComponent />
+                                    : <></>
+                                }
                             </Grid>
                         </Grid>
                     </Box>
                 </Box>
             </Box>
             
+            
+            <ConfirmationDialog 
+                actionYes={() => {
+                    dialogData.action();
+                }}
+                isSubmitting={isSubmitting}
+                openDialog={confirmDialog}
+                setOpenDialog={setConfirmDialog}
+                title='Confirm'
+                description={dialogData.description}
+                actionNo={() => {
+                    setConfirmDialog(false);
+
+                    dialogData = {
+                        action: () => {},
+                        // state: false,
+                        title: '',
+                        description: '',
+                    };
+                }}
+            />
         </Box>
     );
 };

@@ -13,23 +13,49 @@ import SearchwordComponent from '@/components/sunday/SearchwordComponent';
 import StarIcon from '@mui/icons-material/Star';
 import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg"
 import TopTotalCardComponent from '@/components/sunday/merchant/TopTotalCardComponent';
+import { getQueryParams } from '@/util/resources';
+import { useEffect } from 'react';
+import { usePlaceHook } from '@/hooks/merchants/useplaceHook';
+import { useNavigate } from 'react-router-dom';
 
 
 
 const MerchantStoreDetailsPage = () => {
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
     // const [tabsValue, setTabsValue] = useState(0);
     // const [orderView, setOrderView] = useState<"list" | "details">("list");
     // const [orderCategory, setOrderCategory] = useState<"Merchant order" | "Bondyt order">("Bondyt order");
 
     // const viewType = getQueryParams("viewType");
-    // const category = getQueryParams("category");
-    // const merchant_id = getQueryParams("id");
+    const category = getQueryParams("category");
+    const merchant_id = getQueryParams("id");
 
     // useEffect(() => {
     //     setOrderView("list");
     // }, [tabsValue]);
     
+
+    const {
+        // limitNo, setLimitNo,
+        // currentPageNo, totalRecords,
+
+        placeMerchant,
+        placeMerchantAnalytics,
+        
+
+        getPlaceMerchant,
+        getPlaceMerchantAnalytics,
+    } = usePlaceHook();
+
+    useEffect(() => {
+        if (merchant_id) {
+            getPlaceMerchant(merchant_id);
+            getPlaceMerchantAnalytics(merchant_id);
+            
+        } else {
+            navigate(-1);
+        }
+    }, []);
 
 
     return (
@@ -50,7 +76,10 @@ const MerchantStoreDetailsPage = () => {
                 <NotificationComponent />
             </Stack>
 
-            <MerchantTopOptionsComponent />
+            <MerchantTopOptionsComponent 
+                merchantCaterory={category}
+                merchantId={merchant_id}
+            />
 
 
             <Stack direction="row" gap="20px" flexWrap="wrap" mt={5}

@@ -29,15 +29,15 @@ const AvailableMerchantsPage = () => {
     useEffect(() => {
         switch (tabsValue) {
             case 0:
-                getMerchantsByCategory("stores");
+                getMerchantsByCategory("store");
                 break;
         
             case 1:
-                getMerchantsByCategory("locations");
+                getMerchantsByCategory("place");
                 break;
         
             case 2:
-                getMerchantsByCategory("place"); // √
+                getMerchantsByCategory("event");
                 break;
         
             case 3:
@@ -45,7 +45,7 @@ const AvailableMerchantsPage = () => {
                 break;
         
             case 4:
-                getMerchantsByCategory("books");
+                getMerchantsByCategory("book");
                 break;
         
             default:

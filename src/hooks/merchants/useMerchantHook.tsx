@@ -36,6 +36,7 @@ export function useMerchantHook() {
     const [merchants, setMerchants] = useState<merchantDetailsInterface[]>();
     const [pendingMerchants, setPendingMerchants] = useState<pendingMerchantInterface[]>();
     const [selectedMerchant, setSelectedMerchant] = useState<merchantDetailsInterface>();
+    const [merchantCount, setMerchantCount] = useState<number>();
     
 
     const getAllPendingMerchants = useCallback(async (
@@ -221,6 +222,30 @@ export function useMerchantHook() {
             });
 
             setIsSubmitting(false);
+        }
+    }, []);
+
+    const getMerchantCount = useCallback(async () => {
+        try {
+            const response = (await axios.get(`${apiEndpoint}/api/v1/merchants/count`, {
+                headers: {
+                    Authorization: `Bearer ${refreshToken}`
+                }
+            })).data;
+            console.log(response);
+
+            setMerchantCount(response.count);
+    
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            // console.log(err);
+
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
         }
     }, []);
 
@@ -410,7 +435,8 @@ export function useMerchantHook() {
         merchants,
         pendingMerchants,
         selectedMerchant, setSelectedMerchant,
-
+        merchantCount,
+        
         getAllPendingMerchants,
         getMerchantById,
         updateMerchant,
@@ -418,6 +444,7 @@ export function useMerchantHook() {
         blockMerchant,
         reviewPendingMerchant,
         getMerchantsByCategory,
+        getMerchantCount,
         uploadProgress,
     }
 }

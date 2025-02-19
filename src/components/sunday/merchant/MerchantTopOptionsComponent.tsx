@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createSearchParams, useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -6,18 +6,38 @@ import kolors from '@/constants/kolors';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { themeBtnStyle } from '@/util/mui';
+import { useMerchantHook } from '@/hooks/merchants/useMerchantHook';
+import ConfirmationDialog from '../ConfirmationDialog';
 
 
 interface _Props {
-    // title: "Merchant order" | "Bondyt order";
-    // // value: number, 
-    // setView: (view: "list" | "details") => void
+    merchantId: string,
+    merchantCaterory: string,
 };
 
+
+let dialogData = {
+    action: () => {},
+    // state: false,
+    title: '',
+    description: '',
+}
+
 const MerchantTopOptionsComponent: React.FC<_Props> = ({
-    // title, setView
+    merchantId, merchantCaterory
 }) => {
     const navigate = useNavigate();
+    const [confirmDialog, setConfirmDialog] = useState(false);
+
+    const {
+        // limitNo, setLimitNo,
+        // currentPageNo, totalRecords,
+        // apiResponse,
+
+        isSubmitting,
+        blockMerchant,
+        deleteMerchant
+    } = useMerchantHook();
 
 
     return (
@@ -27,7 +47,29 @@ const MerchantTopOptionsComponent: React.FC<_Props> = ({
             <Stack direction='row' gap='20px' alignItems="center">
                 <Button variant="contained" size='small'
                     type="button"
-                    onClick={() => { }}
+                    onClick={() => {
+                        setConfirmDialog(true);
+
+                        dialogData = {
+                            action: () => {
+                                blockMerchant(
+                                    merchantId,
+                                    () => {
+                                        setConfirmDialog(false);
+
+                                        dialogData = {
+                                            action: () => {},
+                                            // state: false,
+                                            title: '',
+                                            description: '',
+                                        };
+                                    }
+                                );
+                            },
+                            title: 'Confirm',
+                            description: 'Are you sure, you want to proceed with blocking this merchant?',
+                        }
+                    }}
                     
                     sx={{
                         ...themeBtnStyle,
@@ -39,7 +81,29 @@ const MerchantTopOptionsComponent: React.FC<_Props> = ({
 
                 <Button variant="contained" size='small'
                     type="button"
-                    onClick={() => { }}
+                    onClick={() => {
+                        setConfirmDialog(true);
+
+                        dialogData = {
+                            action: () => {
+                                deleteMerchant(
+                                    merchantId,
+                                    () => {
+                                        setConfirmDialog(false);
+                                        
+                                        dialogData = {
+                                            action: () => {},
+                                            // state: false,
+                                            title: '',
+                                            description: '',
+                                        };
+                                    }
+                                );
+                            },
+                            title: 'Confirm',
+                            description: 'Are you sure, you want to proceed with deleting this merchant?',
+                        }
+                    }}
                     
                     sx={{
                         ...themeBtnStyle,
@@ -72,7 +136,11 @@ const MerchantTopOptionsComponent: React.FC<_Props> = ({
                     onClick={() => {
                         navigate({
                             pathname: "/admin/merchant/pending-merchant-deatils",
-                            search: `?${createSearchParams({ viewType: "credentials" })}`,
+                            search: `?${createSearchParams({ 
+                                viewType: "credentials",
+                                id: merchantId,
+                                caterory: merchantCaterory
+                            })}`,
                         });
                     }}
                     sx={{
@@ -83,6 +151,28 @@ const MerchantTopOptionsComponent: React.FC<_Props> = ({
                     }}
                 >View Credentials</Typography>
             </Box>
+
+
+            <ConfirmationDialog 
+                actionYes={() => {
+                    dialogData.action();
+                }}
+                isSubmitting={isSubmitting}
+                openDialog={confirmDialog}
+                setOpenDialog={setConfirmDialog}
+                title='Confirm'
+                description={dialogData.description}
+                actionNo={() => {
+                    setConfirmDialog(false);
+
+                    dialogData = {
+                        action: () => {},
+                        // state: false,
+                        title: '',
+                        description: '',
+                    };
+                }}
+            />
         </Stack>
     );
 }

@@ -8,12 +8,6 @@ import kolors from '@/constants/kolors';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid2';
 
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-
 import Avatar from '@mui/material/Avatar';
 import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg";
 import Typography from '@mui/material/Typography';
@@ -35,7 +29,7 @@ import LoadingDataComponent from '@/components/LoadingData';
 import { calculateAge, timeAgo } from '@/util/timeNdate';
 import dayjs from 'dayjs';
 import { currencyDisplay } from '@/util/resources';
-import CircularProgress from '@mui/material/CircularProgress';
+import ConfirmationDialog from '@/components/sunday/ConfirmationDialog';
 
 
 const UserDetailsPage = () => {
@@ -348,46 +342,20 @@ const UserDetailsPage = () => {
                 userId={id || ''}
             />
 
-
-            <Dialog
-                open={suspendDialog}
-                onClose={()=> setSuspendDialog(false)}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">
-                    Confirm
-                </DialogTitle>
-
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Are you sure, you want to proceed with suspending this user?
-                    </DialogContentText>
-                </DialogContent>
-
-
-                <DialogActions>
-                    <Button onClick={()=> setSuspendDialog(false)}
-                        disabled={isSubmitting}
-                    >No</Button>
-
-                    <Button autoFocus
-                        disabled={isSubmitting}
-                        onClick={() => {
-                            suspendUserById(
-                                id || "",
-                                ()=> {setSuspendDialog(false)}
-                            );
-                        }}
-                    >Yes
-                        <CircularProgress color="secondary" size="20px"
-                            sx={{
-                                display: isSubmitting ? "initial" : "none"
-                            }}
-                        />
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ConfirmationDialog 
+                actionYes={() => {
+                    suspendUserById(
+                        id || "",
+                        ()=> {setSuspendDialog(false)}
+                    );
+                }}
+                isSubmitting={isSubmitting}
+                openDialog={suspendDialog}
+                setOpenDialog={setSuspendDialog}
+                title='Confirm'
+                description='Are you sure, you want to proceed with suspending this user?'
+                // actionNo={}
+            />
             
         </Box>
     );

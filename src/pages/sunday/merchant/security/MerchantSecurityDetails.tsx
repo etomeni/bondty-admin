@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import Stack from '@mui/material/Stack';
@@ -24,10 +26,16 @@ import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
 import MerchantTopOptionsComponent from '@/components/sunday/merchant/MerchantTopOptionsComponent';
 import SearchwordComponent from '@/components/sunday/SearchwordComponent';
 import TopTotalCardComponent from '@/components/sunday/merchant/TopTotalCardComponent';
-import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg"
+// import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg"
+import { formatedNumber, getQueryParams } from '@/util/resources';
+import { useSecurityHook } from '@/hooks/merchants/useSecurityHook';
+import LoadingDataComponent from '@/components/LoadingData';
+import EmptyListComponent from '@/components/EmptyList';
+import { timeAgo } from '@/util/timeNdate';
 
 
 const MerchantSecurityDetailsPage = () => {
+    const navigate = useNavigate();
     const [filterValue, setFilterValue] = useState("All");
 
     const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(null);
@@ -38,6 +46,35 @@ const MerchantSecurityDetailsPage = () => {
     const handleCloseFilter = () => {
         setFilterAnchorEl(null);
     };
+
+    // const viewType = getQueryParams("viewType");
+    const category = getQueryParams("category");
+    const merchant_id = getQueryParams("id");
+
+    const {
+        // isSubmitting,
+
+        // securityDetails,
+        // securityMerchantStats,
+        securityMerchantJobHandled,
+        securityMerchantFeedback,
+
+        // getSecurityDetailsById,
+        getSecurityMerchantStats,
+        getSecurityMerchantJobHandled,
+        getSecurityMerchantFeedback,
+        searchSecurityMerchantFeedback,
+    } = useSecurityHook();
+
+    useEffect(() => {
+        if (merchant_id) {
+            getSecurityMerchantFeedback(merchant_id);
+            getSecurityMerchantStats(merchant_id);
+            getSecurityMerchantJobHandled(merchant_id);
+        } else {
+            navigate(-1);
+        }
+    }, []);
 
 
     return (
@@ -58,7 +95,10 @@ const MerchantSecurityDetailsPage = () => {
                 <NotificationComponent />
             </Stack>
 
-            <MerchantTopOptionsComponent />
+            <MerchantTopOptionsComponent 
+                merchantCaterory={category}
+                merchantId={merchant_id}
+            />
 
             <Stack direction="row" gap="20px" flexWrap="wrap" mt={5}
                 alignItems="stretch" 
@@ -106,7 +146,17 @@ const MerchantSecurityDetailsPage = () => {
 
                         <Box>
                             <SearchwordComponent 
-                                performSearch={() => {}}
+                                performSearch={(searchWord) => {
+                                    console.log(searchWord);
+
+                                    if (searchWord == "") {
+                                        getSecurityMerchantFeedback(merchant_id);
+                                        getSecurityMerchantStats(merchant_id);
+                                    } else {
+                                        searchSecurityMerchantFeedback(merchant_id, searchWord);
+                                    }
+
+                                }}
                             />
                         </Box>
                     </Stack>
@@ -143,33 +193,34 @@ const MerchantSecurityDetailsPage = () => {
 
                                             <TableBody>
                                                 {
-                                                    [1, 2, 3].map((_item, index) => (
-                                                        <TableRow key={index}
+                                                    securityMerchantJobHandled && securityMerchantJobHandled.map((jobHandled) => (
+                                                        <TableRow key={jobHandled.id}
                                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                                         >
                                                             <TableCell component="th" scope="row">
                                                                 <Stack direction="row" spacing="10px" alignItems="center">
                                                                     <Avatar 
-                                                                        alt="image" 
-                                                                        src={placeProvider}
+                                                                        alt={ jobHandled.full_name + " image" }
+                                                                        // src={}
                                                                     />
                                                                     
                                                                     <Typography
                                                                         sx={{
                                                                             fontWeight: "400",
                                                                             fontSize: "16px",
-                                                                            color: "#595757"
+                                                                            color: "#595757",
+                                                                            textTransform: "capitalize"
                                                                         }}
-                                                                    >Joseph john</Typography>
+                                                                    >{jobHandled.full_name}</Typography>
                                                                 </Stack>
                                                             </TableCell>
                                                             
-                                                            <TableCell>
-                                                                Male
+                                                            <TableCell sx={{textTransform: "capitalize"}}>
+                                                                { jobHandled.gender }
                                                             </TableCell>
                                                             
                                                             <TableCell>
-                                                                3
+                                                                { formatedNumber(Number(jobHandled.jobs_handled)) }
                                                             </TableCell>
                                                         </TableRow>
                                                     ))
@@ -177,6 +228,17 @@ const MerchantSecurityDetailsPage = () => {
                                             </TableBody>
                                         </Table>
                                     </TableContainer>
+
+                                    {
+                                        securityMerchantJobHandled ?
+                                            securityMerchantJobHandled.length ? <></>
+                                            : <Box my={5}>
+                                                <EmptyListComponent notFoundText='No record found.' />
+                                            </Box>
+                                        : <Box my={5}>
+                                            <LoadingDataComponent />
+                                        </Box>
+                                    }
                                 </Box>
                             </Grid>
 
@@ -271,137 +333,73 @@ const MerchantSecurityDetailsPage = () => {
                                 </Box>
 
                                 <Box p={2}>
+                                    {
+                                        securityMerchantFeedback ?
+                                            securityMerchantFeedback.length ?
+                                                securityMerchantFeedback.map((feedback) => (
+                                                    <Box key={feedback.id}
+                                                        sx={{
+                                                            bgcolor: "#F2F2F2",
+                                                            p: 2,
+                                                            borderRadius: "8px",
+                                                            my: 2
+                                                        }}
+                                                    >
+                                                        <Stack direction="row" spacing="20px"
+                                                            alignItems="center" justifyContent="space-between"
+                                                        >
+                                                            <Typography
+                                                                sx={{
+                                                                    fontWeight: "600",
+                                                                    fontSize: "13px",
+                                                                    color: kolors.dark,
+                                                                }}
+                                                            >ID: {feedback.id}</Typography>
 
-                                    <Box
-                                        sx={{
-                                            bgcolor: "#F2F2F2",
-                                            p: 2,
-                                            borderRadius: "8px",
-                                            my: 2
-                                        }}
-                                    >
-                                        <Stack direction="row" spacing="20px"
-                                            alignItems="center" justifyContent="space-between"
-                                        >
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "600",
-                                                    fontSize: "13px",
-                                                    color: kolors.dark,
-                                                }}
-                                            >ID: 1234hg53</Typography>
+                                                            <Typography
+                                                                sx={{
+                                                                    fontWeight: "400",
+                                                                    fontSize: "13px",
+                                                                    color: "#BCBABA"
+                                                                }}
+                                                            >
+                                                                { feedback.created_at ? timeAgo(feedback.created_at) : "" }
+                                                            </Typography>
+                                                        </Stack>
 
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "400",
-                                                    fontSize: "13px",
-                                                    color: "#BCBABA"
-                                                }}
-                                            >2 days ago</Typography>
-                                        </Stack>
+                                                        <Stack direction="row" spacing="20px"
+                                                            alignItems="center"
+                                                        >
+                                                            <Rating
+                                                                name="text-feedback"
+                                                                value={feedback.rating}
+                                                                readOnly
+                                                                // precision={1}
+                                                                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                                                            />
 
+                                                            <Typography
+                                                                sx={{
+                                                                    fontWeight: "500",
+                                                                    fontSize: "24px",
+                                                                    color: kolors.dark,
+                                                                    mt: 3
+                                                                }}
+                                                            >{ feedback.rating }</Typography>
+                                                        </Stack>
 
-                                        <Stack direction="row" spacing="20px"
-                                            alignItems="center"
-                                        >
-                                            <Rating
-                                                name="text-feedback"
-                                                value={4}
-                                                readOnly
-                                                precision={1}
-                                                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-                                            />
-
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "500",
-                                                    fontSize: "24px",
-                                                    color: kolors.dark,
-                                                    mt: 3
-                                                }}
-                                            >4.0</Typography>
-                                        </Stack>
-
-
-                                        <Typography
-                                            sx={{
-                                                fontSize: "13px",
-                                                fontWeight: "400",
-                                                color: "#595757",
-                                            }}
-                                        >
-                                            Lacus sed viverra tellus in hac habitasse platea dictumst. 
-                                            Malesuada nunc vel risus commodo. 
-                                            In mollis nunc sed id semper risus in hendrerit. 
-                                        </Typography>
-
-                                    </Box>
-
-                                    <Box
-                                        sx={{
-                                            bgcolor: "#F2F2F2",
-                                            p: 2,
-                                            borderRadius: "8px",
-                                            my: 2
-                                        }}
-                                    >
-                                        <Stack direction="row" spacing="20px"
-                                            alignItems="center" justifyContent="space-between"
-                                        >
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "600",
-                                                    fontSize: "13px",
-                                                    color: kolors.dark,
-                                                }}
-                                            >ID: 1234hg53</Typography>
-
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "400",
-                                                    fontSize: "13px",
-                                                    color: "#BCBABA"
-                                                }}
-                                            >2 days ago</Typography>
-                                        </Stack>
-
-
-                                        <Stack direction="row" spacing="20px"
-                                            alignItems="center"
-                                        >
-                                            <Rating
-                                                name="text-feedback"
-                                                value={4}
-                                                readOnly
-                                                precision={1}
-                                                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-                                            />
-
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "500",
-                                                    fontSize: "24px",
-                                                    color: kolors.dark,
-                                                    mt: 3
-                                                }}
-                                            >4.0</Typography>
-                                        </Stack>
-
-
-                                        <Typography
-                                            sx={{
-                                                fontSize: "13px",
-                                                fontWeight: "400",
-                                                color: "#595757",
-                                            }}
-                                        >
-                                            Lacus sed viverra tellus in hac habitasse platea dictumst. 
-                                            Malesuada nunc vel risus commodo. 
-                                            In mollis nunc sed id semper risus in hendrerit. 
-                                        </Typography>
-
-                                    </Box>
-
+                                                        <Typography
+                                                            sx={{
+                                                                fontSize: "13px",
+                                                                fontWeight: "400",
+                                                                color: "#595757",
+                                                            }}
+                                                        > { feedback.feedback } </Typography>
+                                                    </Box>
+                                                ))
+                                            : <EmptyListComponent notFoundText='No record found.' />
+                                        : <LoadingDataComponent />
+                                    }
                                 </Box>
                             </Grid>
                         </Grid>

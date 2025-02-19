@@ -18,6 +18,7 @@ import EmptyListComponent from '@/components/EmptyList';
 import LoadingDataComponent from '@/components/LoadingData';
 import { useMerchantHook } from '@/hooks/merchants/useMerchantHook';
 import NotificationComponent from '@/components/sunday/NotificationComponent';
+import { formatedNumber } from '@/util/resources';
 
 
 const PendingApprovalPage = () => {
@@ -27,12 +28,15 @@ const PendingApprovalPage = () => {
         // limitNo, setLimitNo,
         // currentPageNo, totalRecords,
 
+        merchantCount,
         pendingMerchants,
         getAllPendingMerchants,
+        getMerchantCount,
     } = useMerchantHook();
 
     useEffect(() => {
         getAllPendingMerchants();
+        getMerchantCount();
     }, []);
 
 
@@ -87,7 +91,9 @@ const PendingApprovalPage = () => {
                                 color: kolors.dark,
                                 textAlign: "center",
                             }}
-                        >200</Typography>
+                        >
+                            { merchantCount ? formatedNumber(Number(merchantCount)) : "" }
+                        </Typography>
 
                         <Button variant="contained" size='small'
                             type="button" fullWidth
