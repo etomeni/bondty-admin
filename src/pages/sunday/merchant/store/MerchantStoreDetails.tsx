@@ -15,8 +15,9 @@ import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg"
 import TopTotalCardComponent from '@/components/sunday/merchant/TopTotalCardComponent';
 import { getQueryParams } from '@/util/resources';
 import { useEffect } from 'react';
-import { usePlaceHook } from '@/hooks/merchants/useplaceHook';
+// import { usePlaceHook } from '@/hooks/merchants/useplaceHook';
 import { useNavigate } from 'react-router-dom';
+import { useStoreHook } from '@/hooks/merchants/useStoreHook';
 
 
 
@@ -39,18 +40,27 @@ const MerchantStoreDetailsPage = () => {
         // limitNo, setLimitNo,
         // currentPageNo, totalRecords,
 
-        placeMerchant,
-        placeMerchantAnalytics,
-        
+        // placeMerchant,
+        // placeMerchantAnalytics,
 
-        getPlaceMerchant,
-        getPlaceMerchantAnalytics,
-    } = usePlaceHook();
+        // storeMerchant,
+        // storeMerchantAnalytics,
+        // completedStoreProduct,
+        // declinedStoreProduct,
+        // pendingStoreProduct,
+
+        // getMerchantStore,
+        // getMerchantDeclinedStoreProduct,
+        // getMerchantPendingStoreProduct,
+        // getMerchantCompletedStoreProduct,
+        getMerchantStoreAnalytics,
+        // searchStoreMerchant,
+    } = useStoreHook();
 
     useEffect(() => {
         if (merchant_id) {
-            getPlaceMerchant(merchant_id);
-            getPlaceMerchantAnalytics(merchant_id);
+            // getMerchantStore(merchant_id);
+            getMerchantStoreAnalytics(merchant_id);
             
         } else {
             navigate(-1);
