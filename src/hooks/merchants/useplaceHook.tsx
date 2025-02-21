@@ -88,7 +88,7 @@ export function usePlaceHook() {
                 },
                 // params: { filter, page, limit }
             })).data;
-            // console.log(response);
+            console.log(response);
 
             setSelectedPlace(response);
     
