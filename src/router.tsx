@@ -38,6 +38,7 @@ import BooksRequestPage from "./pages/sunday/merchant/books/BooksRequest";
 import MerchantBooksDetailsPage from "./pages/sunday/merchant/books/MerchantBooksDetails";
 import PushNotificationAddEditPage from "./pages/sunday/marketing/PushNotificationAddEdit";
 import PaymentsPage from "./pages/sunday/payment/Payments";
+import StoreOrdersPage from "./pages/sunday/merchant/store/StoreOrders";
 
 import {
   Library,
@@ -222,6 +223,10 @@ export const router = createBrowserRouter([
                 {
                   path: "merchant-store",
                   element: <MerchantStoreDetailsPage />
+                },
+                {
+                  path: "store-orders/:orderCategory",
+                  element: <StoreOrdersPage />
                 },
 
                 {

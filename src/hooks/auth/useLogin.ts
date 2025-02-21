@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
 import { useForm } from 'react-hook-form';
 import * as yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
+import { jwtDecode } from "jwt-decode";
+import Cookies from 'universal-cookie';
 
 import { useUserStore } from "@/state/userStore";
 import { apiEndpoint, passwordRegex } from "@/util/resources";
-import { getDecryptedLocalStorage, setEncryptedLocalStorage } from "@/util/storage";
+import { setEncryptedLocalStorage } from "@/util/storage";
 import { useSettingStore } from "@/state/settingStore";
 
 
@@ -29,6 +31,9 @@ const formSchema = yup.object({
 
 export function useLoginAuth() {
     const navigate = useNavigate();
+    // const cookies = new Cookies(null, { path: '/' });
+    const cookies = new Cookies();
+
     const _loginUser = useUserStore((state) => state._loginUser);
 
     const [apiResponse, setApiResponse] = useState({
@@ -43,25 +48,9 @@ export function useLoginAuth() {
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const { 
-        handleSubmit, register, setValue, formState: { errors, isValid, isSubmitting } 
+        handleSubmit, register, formState: { errors, isValid, isSubmitting } 
     } = useForm({ resolver: yupResolver(formSchema), mode: 'onBlur', reValidateMode: 'onChange' });
         
-
-    useEffect(() => {
-        const uad = getDecryptedLocalStorage('uad');
-        if (uad) {
-            setRememberMe(true);
-            setValue(
-                "email", uad.email,
-                { shouldDirty: true, shouldTouch: true, shouldValidate: true }
-            );
-            setValue(
-                "password", uad.password,
-                { shouldDirty: true, shouldTouch: true, shouldValidate: true }
-            );
-        }
-    }, []);
-
     const _onSubmit = async (formData: typeof formSchema.__outputType) => {
         // console.log(formData);
         setApiResponse({
@@ -75,7 +64,20 @@ export function useLoginAuth() {
                 email: formData.email,
                 password: formData.password
             };
-            const response = (await axios.post(`${apiEndpoint}/admin/auth/signin`, loginData )).data;
+            const response = (await axios.post(
+                `${apiEndpoint}/admin/auth/signin`, loginData,
+                // { withCredentials: true }
+            )).data;
+
+            const decode = jwtDecode(response.refresh_token);
+            // console.log(decode);
+            
+            cookies.set(
+                "refresh_token", response.refresh_token,
+                {
+                    expires: new Date(Number(decode.exp || 0) * 1000)
+                }
+            );
 
             // if (response.statusCode) {
                 setApiResponse({
@@ -142,6 +144,3 @@ export function useLoginAuth() {
         apiResponse,
     }
 }
-
-
-

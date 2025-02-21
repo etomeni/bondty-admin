@@ -243,7 +243,17 @@ export type storeMerchantInterface = {
     category: {
         id: string,
         is_current: string,
-    }
+    },
+    ratings: {
+        id: string,
+        created_at: string,
+        updated_at: string,
+        user_id: string,
+        target_id: string,
+        target_type: string,
+        rating: number,
+        feedback: string,
+    }[]
 }
 
 export type completedNdeclinedStoreMerchantInterface = {

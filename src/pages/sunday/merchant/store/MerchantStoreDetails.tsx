@@ -1,39 +1,36 @@
-// import { useEffect, useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { createSearchParams, useNavigate } from 'react-router-dom';
+
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import kolors from '@/constants/kolors';
-import NotificationComponent from '@/components/sunday/NotificationComponent';
-import Typography from '@mui/material/Typography';
-import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
-import MerchantTopOptionsComponent from '@/components/sunday/merchant/MerchantTopOptionsComponent';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import SearchwordComponent from '@/components/sunday/SearchwordComponent';
 import StarIcon from '@mui/icons-material/Star';
-import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg"
+import Typography from '@mui/material/Typography';
+
+// import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg"
+import EmptyListComponent from '@/components/EmptyList';
+import LoadingDataComponent from '@/components/LoadingData';
+import SearchwordComponent from '@/components/sunday/SearchwordComponent';
+import NotificationComponent from '@/components/sunday/NotificationComponent';
+import BackNavigationArrowBtn from '@/components/sunday/BackNavigationArrowBtn';
 import TopTotalCardComponent from '@/components/sunday/merchant/TopTotalCardComponent';
-import { getQueryParams } from '@/util/resources';
-import { useEffect } from 'react';
+import MerchantTopOptionsComponent from '@/components/sunday/merchant/MerchantTopOptionsComponent';
+
 // import { usePlaceHook } from '@/hooks/merchants/useplaceHook';
-import { useNavigate } from 'react-router-dom';
 import { useStoreHook } from '@/hooks/merchants/useStoreHook';
+import { currencyDisplay, getQueryParams } from '@/util/resources';
 
 
 
 const MerchantStoreDetailsPage = () => {
     const navigate = useNavigate();
-    // const [tabsValue, setTabsValue] = useState(0);
-    // const [orderView, setOrderView] = useState<"list" | "details">("list");
-    // const [orderCategory, setOrderCategory] = useState<"Merchant order" | "Bondyt order">("Bondyt order");
-
+    const [activeCategory, setActiveCategory] = useState<string>('0');
+    
     // const viewType = getQueryParams("viewType");
     const category = getQueryParams("category");
     const merchant_id = getQueryParams("id");
-
-    // useEffect(() => {
-    //     setOrderView("list");
-    // }, [tabsValue]);
     
 
     const {
@@ -43,30 +40,53 @@ const MerchantStoreDetailsPage = () => {
         // placeMerchant,
         // placeMerchantAnalytics,
 
-        // storeMerchant,
-        // storeMerchantAnalytics,
+        storeMerchant,
+        allCategories,
+        storeMerchantAnalytics,
         // completedStoreProduct,
         // declinedStoreProduct,
         // pendingStoreProduct,
 
-        // getMerchantStore,
+        getMerchantStore,
+        getAllCategories,
         // getMerchantDeclinedStoreProduct,
         // getMerchantPendingStoreProduct,
         // getMerchantCompletedStoreProduct,
         getMerchantStoreAnalytics,
-        // searchStoreMerchant,
+        searchStoreMerchant,
     } = useStoreHook();
 
     useEffect(() => {
+        getAllCategories();
+    }, []);
+
+    useEffect(() => {
         if (merchant_id) {
-            // getMerchantStore(merchant_id);
+            if (activeCategory != "0") getMerchantStore(merchant_id, activeCategory);
             getMerchantStoreAnalytics(merchant_id);
-            
         } else {
             navigate(-1);
         }
-    }, []);
+    }, [activeCategory]);
 
+    useEffect(() => {
+        if (allCategories.length) {
+            const _activeCategory = allCategories[0].id;
+            setActiveCategory(_activeCategory);
+        }
+    }, [allCategories]);
+
+    function calculateAverageRating(ratings: any[]): number {
+        if (ratings.length === 0) {
+            return 0; // Return 0 if there are no ratings to avoid division by zero
+        }
+    
+        const totalRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);
+        const averageRating = totalRating / ratings.length;
+    
+        return averageRating;
+    }
+    
 
     return (
         <Box mb={5}
@@ -98,21 +118,50 @@ const MerchantStoreDetailsPage = () => {
             >
                 <TopTotalCardComponent 
                     title='Total sales made'
-                    value='$2,000'
+                    value={currencyDisplay(Number(storeMerchantAnalytics?.totalSales))}
+                    // value='$2,000'
                 />
 
-                <TopTotalCardComponent 
-                    title='Completed  orders'
-                    value='200'
-                />
+                <Box sx={{ cursor: "pointer" }}
+                    onClick={() => {
+                        navigate({
+                            pathname: "/admin/merchant/store-orders/Completed",
+                            search: `?${createSearchParams({ 
+                                viewType: "Completed",
+                                category: activeCategory,
+                                id: merchant_id
+                            })}`,
+                        });
+                    }}
+                >
+                    <TopTotalCardComponent 
+                        title='Completed orders'
+                        value={`${storeMerchantAnalytics?.completedCount || 0}`}
+                    />
+                </Box>
 
-                <TopTotalCardComponent 
-                    title='Declined orders'
-                    value='2'
-                />
+
+                <Box sx={{ cursor: "pointer" }}
+                    onClick={() => {
+                        navigate({
+                            pathname: "/admin/merchant/store-orders/Declined",
+                            search: `?${createSearchParams({ 
+                                viewType: "Declined",
+                                category: activeCategory,
+                                id: merchant_id
+                            })}`,
+                        });
+                    }}
+                >
+                    <TopTotalCardComponent 
+                        title='Declined orders'
+                        value={`${storeMerchantAnalytics?.rejectedCount || 0}`}
+                    />
+                </Box>
+
                 <TopTotalCardComponent 
                     title='Total available products'
-                    value='5'
+                    value={`${storeMerchantAnalytics?.totalAvailableItems || 0}`}
                 />
             </Stack>
 
@@ -132,8 +181,12 @@ const MerchantStoreDetailsPage = () => {
                         <Box>
                             <Select
                                 id="demo-simple-select"
-                                defaultValue={20}
-                                // onChange={handleChange}
+                                value={activeCategory}
+                                onChange={(event) => {
+                                    const value = event.target.value;
+                                    setActiveCategory(value);
+                                }}
+
                                 size='small'
 
                                 sx={{
@@ -170,19 +223,32 @@ const MerchantStoreDetailsPage = () => {
                                     }
                                 }}
                             >
-                                <MenuItem value={0}>All</MenuItem>
-                                <MenuItem value={10}>Men</MenuItem>
-                                <MenuItem value={20}>Women</MenuItem>
-                                <MenuItem value={30}>Gadgets</MenuItem>
-                                <MenuItem value={40}>Beauty/Skincare</MenuItem>
-                                <MenuItem value={50}>Foodstuff</MenuItem>
-                                <MenuItem value={60}>Cars</MenuItem>
+                                <MenuItem value={0} disabled>All</MenuItem>
+                                {
+                                    allCategories.map((category) => (
+                                        <MenuItem key={category.id} value={category.id}
+                                            sx={{
+                                                textTransform: "capitalize"
+                                            }}
+                                        >{category.name}</MenuItem>
+                                    ))
+                                }
                             </Select>
                         </Box>
 
                         <Box>
                             <SearchwordComponent 
-                                performSearch={() => {}}
+                                performSearch={(searchWord) => {
+                                    console.log(searchWord);
+
+                                    if (searchWord == "") {
+                                        getMerchantStore(merchant_id, activeCategory);
+                                        getMerchantStoreAnalytics(merchant_id);
+                                    } else {
+                                        searchStoreMerchant(merchant_id, searchWord);
+                                    }
+
+                                }}
                             />
                         </Box>
                     </Stack>
@@ -193,73 +259,85 @@ const MerchantStoreDetailsPage = () => {
                             // bgcolor="#F2F2F2" p={1}
                         >
                             {
-                                [1,2,3,4,5,6,7,8,9,0].map((_item, index) => (
-                                    <Box key={index}
-                                        sx={{
-                                            width: "170px",
-                                            bgcolor: "#F2F2F2",
-                                            borderRadius: "8px"
-                                        }}
-                                    >
-                                        <Box
-                                            sx={{
-                                                borderRadius: "8px",
-                                                overflow: "hidden"
-                                            }}
-                                        >
-                                            <Box 
+                                storeMerchant ?
+                                    storeMerchant.length ?
+                                        storeMerchant.map((storeItem) => (
+                                            <Box key={storeItem.id}
                                                 sx={{
-                                                    height: "160px"
+                                                    width: "170px",
+                                                    bgcolor: "#F2F2F2",
+                                                    borderRadius: "8px"
                                                 }}
                                             >
-                                                <img
-                                                    src={placeProvider}
-                                                    alt='store image'
-                                                    style={{
-                                                        width: "100%",
-                                                        height: "100%",
-                                                        objectFit: "cover"
-                                                    }}
-                                                />
-                                            </Box>
-
-                                            <Box
-                                                sx={{
-                                                    // height: "40px",
-                                                    bgcolor: kolors.primary,
-                                                }}
-                                            >
-                                                <Typography
+                                                <Box
                                                     sx={{
-                                                        fontWeight: "600",
-                                                        fontSize: "16px",
-                                                        lineHeight: "40px",
-                                                        color: "#fff",
-                                                        textAlign: "center",
+                                                        borderRadius: "8px",
+                                                        overflow: "hidden"
                                                     }}
-                                                >In stock</Typography>
-                                            </Box>
-                                        </Box>
-
-                                        <Box p={1}>
-                                            <Stack direction="row" alignItems="center" spacing="5px"
-                                                justifyContent="space-between"
-                                            >
-                                                <Typography
-                                                    sx={{
-                                                        fontWeight: "500",
-                                                        fontSize: "13px",
-                                                        color: kolors.dark
-                                                    }}
-                                                >Grey fitted shirt</Typography>
-
-                                                <Stack direction="row" alignItems="center" spacing="5px">
-                                                    <StarIcon 
+                                                >
+                                                    <Box 
                                                         sx={{
-                                                            color: "gold",
-                                                            fontSize: "18px",
+                                                            height: "160px"
                                                         }}
-                                                    />
+                                                    >
+                                                        <img
+                                                            src={storeItem.product_photos[0].url}
+                                                            alt='store image'
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "100%",
+                                                                objectFit: "cover"
+                                                            }}
+                                                        />
+                                                    </Box>
+
+                                                    <Box
+                                                        sx={{
+                                                            // height: "40px",
+                                                            bgcolor: storeItem.in_stock ? kolors.primary : "#7B7979",
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: "600",
+                                                                fontSize: "16px",
+                                                                lineHeight: "40px",
+                                                                color: "#fff",
+                                                                textAlign: "center",
+                                                            }}
+                                                        >{ storeItem.in_stock ? "In stock" : "Out of stock" }</Typography>
+                                                    </Box>
+                                                </Box>
+
+                                                <Box p={1}>
+                                                    <Stack direction="row" alignItems="center" spacing="5px"
+                                                        justifyContent="space-between"
+                                                    >
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: "500",
+                                                                fontSize: "13px",
+                                                                color: kolors.dark
+                                                            }}
+                                                        >{ storeItem.name }</Typography>
+
+                                                        <Stack direction="row" alignItems="center" spacing="5px">
+                                                            <StarIcon 
+                                                                sx={{
+                                                                    color: "gold",
+                                                                    fontSize: "18px",
+                                                                }}
+                                                            />
+
+                                                            <Typography
+                                                                sx={{
+                                                                    fontWeight: "500",
+                                                                    fontSize: "13px",
+                                                                    color: kolors.dark
+                                                                }}
+                                                            >{ calculateAverageRating(storeItem.ratings) }</Typography>
+                                                        </Stack>
+                                                    </Stack>
 
                                                     <Typography
                                                         sx={{
@@ -267,20 +345,16 @@ const MerchantStoreDetailsPage = () => {
                                                             fontSize: "13px",
                                                             color: kolors.dark
                                                         }}
-                                                    >5.0</Typography>
-                                                </Stack>
-                                            </Stack>
-
-                                            <Typography
-                                                sx={{
-                                                    fontWeight: "500",
-                                                    fontSize: "13px",
-                                                    color: kolors.dark
-                                                }}
-                                            >$40.00</Typography>
-                                        </Box>
+                                                    >{currencyDisplay(Number(storeItem.price))}</Typography>
+                                                </Box>
+                                            </Box>
+                                        ))
+                                    : <Box my={5} mx="auto">
+                                        <EmptyListComponent notFoundText='No record found.' />
                                     </Box>
-                                ))
+                                : <Box my={5} mx="auto">
+                                    <LoadingDataComponent />
+                                </Box>
                             }
                         </Stack>
                     </Box>

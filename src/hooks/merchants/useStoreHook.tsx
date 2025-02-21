@@ -15,6 +15,14 @@ interface analyticsInterface {
     completedCount: number,
     pendingCount: number,
     rejectedCount: number,
+    totalAvailableItems: number,
+}
+
+interface allCategoriesInterface {
+    id: string,
+    created_at: string,
+    updated_at: string,
+    name: string,
 }
 
 
@@ -35,12 +43,53 @@ export function useStoreHook() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     // const [uploadProgress, setUploadProgress] = useState(0);
 
-    const [storeMerchant, setStoreMerchant] = useState<storeMerchantInterface[]>();
-    const [completedStoreProduct, setCompletedStoreProduct] = useState<completedNdeclinedStoreMerchantInterface[]>();
-    const [pendingStoreProduct, setPendingStoreProduct] = useState<pendingStoreMerchantInterface>();
-    const [declinedStoreProduct, setDeclinedStoreProduct] = useState<completedNdeclinedStoreMerchantInterface[]>();
-    const [storeMerchantAnalytics, setStoreMerchantAnalytics] = useState<analyticsInterface>();
+    const [allCategories, setAllCategories] = useState<allCategoriesInterface[]>([]);
 
+    const [storeMerchant, setStoreMerchant] = useState<storeMerchantInterface[]>();
+    const [storeMerchantAnalytics, setStoreMerchantAnalytics] = useState<analyticsInterface>();
+    const [storeProductDetails, setStoreProductDetails] = useState<completedNdeclinedStoreMerchantInterface[]>();
+    // const [completedStoreProduct, setCompletedStoreProduct] = useState<completedNdeclinedStoreMerchantInterface[]>();
+
+    const [pendingStoreProduct, setPendingStoreProduct] = useState<pendingStoreMerchantInterface>();
+
+
+    const getAllCategories = useCallback(async (
+    ) => {
+        setIsSubmitting(true);
+
+        try {
+            const response = (await axios.get(`${apiEndpoint}/admin/product/all-categories`, {
+                headers: {
+                    Authorization: `Bearer ${refreshToken}`
+                }
+            })).data;
+            // console.log(response);
+
+            if (response.statusCode == 200) {
+                setAllCategories(response.data);
+            }
+    
+            // _setToastNotification({
+            //     display: true,
+            //     status: "info",
+            //     message: response.message
+            // });
+    
+            setIsSubmitting(false);
+        } catch (error: any) {
+            const err = error.response && error.response.data ? error.response.data : error;
+            const fixedErrorMsg = "Ooops and error occurred!";
+            // console.log(err);
+
+            _setToastNotification({
+                display: true,
+                status: "error",
+                message: err.errors && err.length ? err[0].message : err.message || fixedErrorMsg
+            });
+
+            setIsSubmitting(false);
+        }
+    }, []);
 
     const getMerchantStore = useCallback(async (
         merchant_id: string,
@@ -49,6 +98,7 @@ export function useStoreHook() {
         limit = limitNo,
     ) => {
         setIsSubmitting(true);
+        setStoreMerchant(undefined);
 
         try {
             const response = (await axios.get(`${apiEndpoint}/admin/product/merchant/all/${merchant_id}`, {
@@ -103,7 +153,7 @@ export function useStoreHook() {
             // console.log(response);
 
             if (response.statusCode == 200) {
-                setCompletedStoreProduct(response.data);
+                setStoreProductDetails(response.data);
             }
     
             _setToastNotification({
@@ -189,7 +239,7 @@ export function useStoreHook() {
             // console.log(response);
 
             if (response.statusCode == 200) {
-                setDeclinedStoreProduct(response.data);
+                setStoreProductDetails(response.data);
             }
     
             _setToastNotification({
@@ -304,12 +354,15 @@ export function useStoreHook() {
         isSubmitting,
 
         storeMerchant,
+        allCategories,
         storeMerchantAnalytics,
-        completedStoreProduct,
-        declinedStoreProduct,
+        storeProductDetails,
+        // completedStoreProduct,
+        // declinedStoreProduct,
         pendingStoreProduct,
 
         getMerchantStore,
+        getAllCategories,
         getMerchantDeclinedStoreProduct,
         getMerchantPendingStoreProduct,
         getMerchantCompletedStoreProduct,
