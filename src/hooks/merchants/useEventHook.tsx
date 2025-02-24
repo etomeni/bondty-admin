@@ -45,7 +45,7 @@ export function useEventHook() {
                     Authorization: `Bearer ${refreshToken}`
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 setEventMerchant(response.data);
@@ -82,7 +82,7 @@ export function useEventHook() {
                     Authorization: `Bearer ${refreshToken}`
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 setEventMerchantAnalytics(response.data);

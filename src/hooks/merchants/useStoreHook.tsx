@@ -107,7 +107,7 @@ export function useStoreHook() {
                 },
                 params: { category, page, limit }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 setStoreMerchant(response.data);
@@ -273,7 +273,7 @@ export function useStoreHook() {
                     Authorization: `Bearer ${refreshToken}`
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 setStoreMerchantAnalytics(response.data);

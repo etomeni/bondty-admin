@@ -89,9 +89,11 @@ const AvailableMerchantsPage = () => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-store",
                                 search: `?${createSearchParams({ 
-                                    viewType: "credentials",
-                                    category: merchantCategory,
                                     id: merchant.id,
+                                    is_deleted: merchant.is_deleted ? "1" : "0",
+                                    is_suspended: merchant.is_suspended ? "1" : "0",
+                                    category: merchantCategory,
+                                    viewType: "credentials",
                                 })}`,
                             });
                         }}
@@ -106,9 +108,11 @@ const AvailableMerchantsPage = () => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-location-details",
                                 search: `?${createSearchParams({ 
-                                    viewType: "credentials",
-                                    category: merchantCategory,
                                     id: merchant.id,
+                                    is_deleted: merchant.is_deleted ? "1" : "0",
+                                    is_suspended: merchant.is_suspended ? "1" : "0",
+                                    category: merchantCategory,
+                                    viewType: "credentials",
                                 })}`,
                             });
                         }}
@@ -123,9 +127,11 @@ const AvailableMerchantsPage = () => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-events-details",
                                 search: `?${createSearchParams({ 
-                                    viewType: "credentials",
-                                    category: merchantCategory,
                                     id: merchant.id,
+                                    is_deleted: merchant.is_deleted ? "1" : "0",
+                                    is_suspended: merchant.is_suspended ? "1" : "0",
+                                    category: merchantCategory,
+                                    viewType: "credentials",
                                 })}`,
                             });
                         }}
@@ -140,9 +146,11 @@ const AvailableMerchantsPage = () => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-security-details",
                                 search: `?${createSearchParams({ 
-                                    viewType: "credentials",
-                                    category: merchantCategory,
                                     id: merchant.id,
+                                    is_deleted: merchant.is_deleted ? "1" : "0",
+                                    is_suspended: merchant.is_suspended ? "1" : "0",
+                                    category: merchantCategory,
+                                    viewType: "credentials",
                                 })}`,
                             });
                         }}
@@ -157,9 +165,11 @@ const AvailableMerchantsPage = () => {
                             navigate({
                                 pathname: "/admin/merchant/merchant-books-details",
                                 search: `?${createSearchParams({ 
-                                    viewType: "credentials",
-                                    category: merchantCategory,
                                     id: merchant.id,
+                                    category: merchantCategory,
+                                    is_deleted: merchant.is_deleted ? "1" : "0",
+                                    is_suspended: merchant.is_suspended ? "1" : "0",
+                                    viewType: "credentials",
                                 })}`,
                             });
                         }}

@@ -13,21 +13,24 @@ import ConfirmationDialog from '../ConfirmationDialog';
 interface _Props {
     merchantId: string,
     merchantCaterory: string,
+    is_suspended: boolean,
+    is_deleted: boolean,
 };
 
 
 let dialogData = {
     action: () => {},
-    // state: false,
     title: '',
     description: '',
 }
 
 const MerchantTopOptionsComponent: React.FC<_Props> = ({
-    merchantId, merchantCaterory
+    merchantId, merchantCaterory, is_suspended, is_deleted
 }) => {
     const navigate = useNavigate();
     const [confirmDialog, setConfirmDialog] = useState(false);
+    const [isSuspended, setIsSuspended] = useState(is_suspended);
+    const [isDeleted, setIsDeleted] = useState(is_deleted);
 
     const {
         // limitNo, setLimitNo,
@@ -58,7 +61,9 @@ const MerchantTopOptionsComponent: React.FC<_Props> = ({
                                         setConfirmDialog(false);
 
                                         dialogData = {
-                                            action: () => {},
+                                            action: () => {
+                                                setIsSuspended(!isSuspended);
+                                            },
                                             // state: false,
                                             title: '',
                                             description: '',
@@ -77,58 +82,66 @@ const MerchantTopOptionsComponent: React.FC<_Props> = ({
                         fontWeight: "400",
                         // lineHeight: 14.52px;
                     }}
-                > Block merchant </Button>
+                >{ isSuspended ? "Unblock" : "Block" } merchant </Button>
 
-                <Button variant="contained" size='small'
-                    type="button"
-                    onClick={() => {
-                        setConfirmDialog(true);
+                {
+                    isDeleted ? <Typography sx={{ color: "red" }}>
+                        This merchant account has been deleted
+                    </Typography>
+                    : 
+                    <Button variant="contained" size='small'
+                        type="button"
+                        onClick={() => {
+                            setConfirmDialog(true);
 
-                        dialogData = {
-                            action: () => {
-                                deleteMerchant(
-                                    merchantId,
-                                    () => {
-                                        setConfirmDialog(false);
-                                        
-                                        dialogData = {
-                                            action: () => {},
-                                            // state: false,
-                                            title: '',
-                                            description: '',
-                                        };
-                                    }
-                                );
+                            dialogData = {
+                                action: () => {
+                                    deleteMerchant(
+                                        merchantId,
+                                        () => {
+                                            setConfirmDialog(false);
+                                            
+                                            dialogData = {
+                                                action: () => {
+                                                    setIsDeleted(!isDeleted);
+                                                },
+                                                // state: false,
+                                                title: '',
+                                                description: '',
+                                            };
+                                        }
+                                    );
+                                },
+                                title: 'Confirm',
+                                description: 'Are you sure, you want to proceed with deleting this merchant?',
+                            }
+                        }}
+                        
+                        sx={{
+                            ...themeBtnStyle,
+
+                            bgcolor: kolors.secondary,
+                            color: kolors.primary,
+
+                            "&:hover": {
+                                bgcolor: kolors.secondary,
+                                color: kolors.primary
                             },
-                            title: 'Confirm',
-                            description: 'Are you sure, you want to proceed with deleting this merchant?',
-                        }
-                    }}
-                    
-                    sx={{
-                        ...themeBtnStyle,
+                            "&:active": {
+                                bgcolor: kolors.primary,
+                                color: "#fff"
+                            },
+                            "&:focus": {
+                                bgcolor: kolors.secondary,
+                                color: kolors.primary
+                            },
 
-                        bgcolor: kolors.secondary,
-                        color: kolors.primary,
-
-                        "&:hover": {
-                            bgcolor: kolors.secondary,
-                            color: kolors.primary
-                        },
-                        "&:active": {
-                            bgcolor: kolors.primary,
-                            color: "#fff"
-                        },
-                        "&:focus": {
-                            bgcolor: kolors.secondary,
-                            color: kolors.primary
-                        },
-
-                        fontSize: "15px",
-                        fontWeight: "400",
-                        // lineHeight: 14.52px;
-                    }}
-                > Delete account </Button>
+                            fontSize: "15px",
+                            fontWeight: "400",
+                            // lineHeight: 14.52px;
+                        }}
+                    > Delete account </Button>
+                }
             </Stack>
 
             <Box>

@@ -31,7 +31,8 @@ const MerchantStoreDetailsPage = () => {
     // const viewType = getQueryParams("viewType");
     const category = getQueryParams("category");
     const merchant_id = getQueryParams("id");
-    
+    const is_deleted = getQueryParams("is_deleted");
+    const is_suspended = getQueryParams("is_suspended");
 
     const {
         // limitNo, setLimitNo,
@@ -109,6 +110,8 @@ const MerchantStoreDetailsPage = () => {
             <MerchantTopOptionsComponent 
                 merchantCaterory={category}
                 merchantId={merchant_id}
+                is_deleted={Number(is_deleted) ? true : false}
+                is_suspended={Number(is_suspended) ? true : false}
             />
 
 

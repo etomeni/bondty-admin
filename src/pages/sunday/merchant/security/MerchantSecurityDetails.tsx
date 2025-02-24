@@ -27,7 +27,7 @@ import MerchantTopOptionsComponent from '@/components/sunday/merchant/MerchantTo
 import SearchwordComponent from '@/components/sunday/SearchwordComponent';
 import TopTotalCardComponent from '@/components/sunday/merchant/TopTotalCardComponent';
 // import placeProvider from "@/assets/images/dashboard/placeProvider.jpeg"
-import { formatedNumber, getQueryParams } from '@/util/resources';
+import { currencyDisplay, formatedNumber, getQueryParams } from '@/util/resources';
 import { useSecurityHook } from '@/hooks/merchants/useSecurityHook';
 import LoadingDataComponent from '@/components/LoadingData';
 import EmptyListComponent from '@/components/EmptyList';
@@ -50,12 +50,14 @@ const MerchantSecurityDetailsPage = () => {
     // const viewType = getQueryParams("viewType");
     const category = getQueryParams("category");
     const merchant_id = getQueryParams("id");
+    const is_deleted = getQueryParams("is_deleted");
+    const is_suspended = getQueryParams("is_suspended");
 
     const {
         // isSubmitting,
 
         // securityDetails,
-        // securityMerchantStats,
+        securityMerchantStats,
         securityMerchantJobHandled,
         securityMerchantFeedback,
 
@@ -98,6 +100,8 @@ const MerchantSecurityDetailsPage = () => {
             <MerchantTopOptionsComponent 
                 merchantCaterory={category}
                 merchantId={merchant_id}
+                is_deleted={Number(is_deleted) ? true : false}
+                is_suspended={Number(is_suspended) ? true : false}
             />
 
             <Stack direction="row" gap="20px" flexWrap="wrap" mt={5}
@@ -106,17 +110,17 @@ const MerchantSecurityDetailsPage = () => {
             >
                 <TopTotalCardComponent 
                     title='Total sales made'
-                    value='$2,000'
+                    value={currencyDisplay(Number(securityMerchantStats?.totalSales))}
                 />
 
                 <TopTotalCardComponent 
                     title='Total service provided'
-                    value='200'
+                    value={formatedNumber(Number(securityMerchantStats?.numberOfServices))}
                 />
 
                 <TopTotalCardComponent 
                     title='Total rejected'
-                    value='2'
+                    value={formatedNumber(Number(securityMerchantStats?.rejectedServices))}
                 />
             </Stack>
 

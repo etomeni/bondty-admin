@@ -53,7 +53,7 @@ export function useBookHook() {
                 },
                 params: { filter, page, limit }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 setBookMerchant(response.data);
@@ -134,7 +134,7 @@ export function useBookHook() {
                     Authorization: `Bearer ${refreshToken}`
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             // if (response.statusCode == 200) {
             //     setBookMerchantAnalytics(response.data);
@@ -216,7 +216,7 @@ export function useBookHook() {
                     Authorization: `Bearer ${refreshToken}`,
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 // setBookMerchant(response.data);

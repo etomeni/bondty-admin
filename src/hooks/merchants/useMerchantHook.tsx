@@ -197,7 +197,7 @@ export function useMerchantHook() {
                     Authorization: `Bearer ${refreshToken}`
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 setMerchants(response.data);
@@ -232,7 +232,7 @@ export function useMerchantHook() {
                     Authorization: `Bearer ${refreshToken}`
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             setMerchantCount(response.count);
     

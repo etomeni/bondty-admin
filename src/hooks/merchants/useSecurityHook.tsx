@@ -5,9 +5,15 @@ import { apiEndpoint } from "@/util/resources";
 import { useSettingStore } from "@/state/settingStore";
 import { 
     securityDetailsInterface, securityMerchantFeedbackInterface, 
-    securityMerchantJobHandledInterface, securityMerchantStatsInterface 
+    securityMerchantJobHandledInterface, // securityMerchantStatsInterface 
 } from "@/typeInterfaces/merchants.interface";
 
+
+interface analyticsInterface {
+    numberOfServices: number,
+    rejectedServices: number,
+    totalSales: number
+};
 
 
 export function useSecurityHook() {
@@ -28,7 +34,7 @@ export function useSecurityHook() {
     // const [uploadProgress, setUploadProgress] = useState(0);
 
     const [securityDetails, setSecurityDetails] = useState<securityDetailsInterface[]>();
-    const [securityMerchantStats, setSecurityMerchantStats] = useState<securityMerchantStatsInterface[]>();
+    const [securityMerchantStats, setSecurityMerchantStats] = useState<analyticsInterface>();
     const [securityMerchantJobHandled, setSecurityMerchantJobHandled] = useState<securityMerchantJobHandledInterface[]>();
     const [securityMerchantFeedback, setSecurityMerchantFeedback] = useState<securityMerchantFeedbackInterface[]>();
 
@@ -80,7 +86,7 @@ export function useSecurityHook() {
                     Authorization: `Bearer ${refreshToken}`
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 setSecurityMerchantFeedback(response.data);
@@ -117,7 +123,7 @@ export function useSecurityHook() {
                     Authorization: `Bearer ${refreshToken}`
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 setSecurityMerchantJobHandled(response.data);
@@ -154,7 +160,7 @@ export function useSecurityHook() {
                     Authorization: `Bearer ${refreshToken}`
                 }
             })).data;
-            console.log(response);
+            // console.log(response);
 
             if (response.statusCode == 200) {
                 setSecurityMerchantStats(response.data);
